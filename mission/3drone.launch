@@ -1,0 +1,41 @@
+<launch>
+
+	<group><!-- Start Navigation Node -->
+		<node pkg="mav_form" type="nav_manager" name="nav" output="screen" ns="/nav">
+			<param name="namespace" value="/nav"/>
+			<param name="use_sim_time"  value="true" />
+		</node>
+	</group>
+
+	<group><!-- Start Formation Control Node -->
+		<node pkg="mav_form" type="form_manager" name="form" output="screen" ns="/form">
+			<param name="namespace" value="/form"/>
+			<param name="use_sim_time"  value="true" />
+		</node>
+	</group>
+
+
+	<group><!-- Start Drone 1 Node -->
+		<node pkg="mav_form" type="agent" name="agent_1" output="screen" ns="/drone1">
+			<param name="namespace" value="/drone1"/>
+			<param name="use_sim_time"  value="true" />
+		</node>
+	</group>
+
+	<group><!-- Start Drone 2 Node -->
+		<node pkg="mav_form" type="agent" name="agent_1" output="screen" ns="/drone2">
+			<!-- pkg = folder, type = .cpp name  output =???? ns = node name/namespace -->
+			<param name="namespace" value="/drone2"/>
+			<param name="use_sim_time"  value="true" />
+		</node>
+	</group>
+
+	<group><!-- Start Drone 3 Node -->
+	<node pkg="mav_form" type="agent" name="agent_1" output="screen" ns="/drone2">
+		<!-- pkg = folder, type = .cpp name  output =???? ns = node name/namespace -->
+		<param name="namespace" value="/drone2"/>
+		<param name="use_sim_time"  value="true" />
+	</node>
+	</group>
+
+</launch>
