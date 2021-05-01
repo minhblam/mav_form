@@ -1,97 +1,101 @@
 #include <iostream>
 #include <vector>
 
+// Navigation Manager
+
+// Input primary waypoints to reach and modify to accomodate flight capabilities
+
+
+
+
+// #include <geometry_msgs/PoseStamped.h>
+
+// ros::Publisher pose_pub;                  // Drone 2 State Control Must be from main variable pose_pub.publish(value)
+
+// geometry_msgs::PoseStamped fp_pose;        // Probably Redundant Master Message
 
 struct gnc_WP{
 	float x; ///< distance in x with respect to your reference frame
 	float y; ///< distance in y with respect to your reference frame
 	float z; ///< distance in z with respect to your reference frame
-	// float psi; ///< rotation about the third axis of your reference frame
+	float psi; ///< rotation about the third axis of your reference frame
 };
 
-//new WP adds the base WP. formation creates the new offset WPs for drones to follow.
-//The active WP is selected by nav manager and sent to form_control. form_control only requests the next WP until it has verified that all drones have reached the WP
+using namespace std;
 
+vector<gnc_WP> func_wplist (){
+	vector<gnc_WP> wp_in;
+	gnc_WP wp_list;
+	wp_list.x = 0; //update this to 0,1
+	wp_list.y = 0;
+	wp_list.z = 2;
+	wp_in.push_back(wp_list);
+	wp_list.x = 3; //1
+	wp_list.y = 1;
+	wp_list.z = 2;
+	wp_in.push_back(wp_list);
+	wp_list.x = 9; //2
+	wp_list.y = 3;
+	wp_list.z = 2;
+	wp_in.push_back(wp_list);
+	wp_list.x = 9; //3
+	wp_list.y = 5;
+	wp_list.z = 2;
+	wp_in.push_back(wp_list);
+	wp_list.x = 9; //4
+	wp_list.y = 7;
+	wp_list.z = 2;
+	wp_in.push_back(wp_list);
+	wp_list.x = 5; //5
+	wp_list.y = 9;
+	wp_list.z = 2;
+	wp_in.push_back(wp_list);
 
-int formation(std::string mode)
-{
-  //Assign drone number to formation number with loop oir some shit
-  //Something count number of drones and create offset waypoint
-  if(mode == "V"){
-    ROSINFO("Formation set to %s", mode);
-    //Do formation shit
-  }
-  if(mode == "line"){
-    ROSINFO("Formation set to %s", mode);
-    //Do formation shit
-  }
+	return wp_in;
+}
+
+void push_wp (vector<gnc_WP> wp_in, int k){
+
+	vector<gnc_WP>wp_out;
+	gnc_WP newWP;
+	for (int n=0 ; n<wp_in.size()-1 ; n++ ){
+        
+        newWP.x = wp_in[n].x;
+        newWP.y = wp_in[n].y;
+        newWP.z = wp_in[n].z;
+        // wp_out.push_back(wp_in[n]); try using this
+		wp_out.push_back(newWP);
+
+		float angle1 = atan( (wp_in[n+2].x - wp_in[n+1].x)/(wp_in[n+2].y - wp_in[n+1].y) )*180/M_PI;
+		float angle2= atan((wp_in[n+1].x - wp_in[n].x)/(wp_in[n+1].y - wp_in[n].y))*180/M_PI;
+		float angle = angle1 - angle2;
+		// cout <<"Angle WP" <<n+2 << "_" << n+1 << " is " << angle1 << " degrees, WP" << n+1 << "_" << n << " is " << angle2 << " degrees, difference is " << angle <<endl;
+		
+		if (angle != 0){
+			newWP.psi = atan( (wp_in[n+2].x - wp_in[n+1].x)/(wp_in[n+2].y - wp_in[n+1].y) )*180/M_PI;
+			wp_out.push_back(newWP);
+		}
+    }
+
+	// fp_pose.pose.pose.x = wp_out[n].x;
+	// fp_pose.pose.pose.y = wp_out[n].y;
+	// fp_pose.pose.pose.z = wp_out[n].z;
+	// pose_pub.publish(fp_pose);
+	cout << wp_out[k].x << endl;
+
 }
 
 
-void newWP (float something oneday){
-  int k;
-  for(k=0; k < size(waypointList); k++){ //Basically take existing WP, create a new array where angle between each line of WP is checked to see if a rotation WP is required.
+// new WP adds the base WP. formation creates the new offset WPs for drones to follow.
+// The active WP is selected by nav manager and sent to form_control.
 
-    float newangle = (waypointList[n+1].y - waypointList[n].y) / (waypointList[n+1].x - waypointList[n].x)
-    float curangle = (waypointList[n].y - waypointList[n-1].y) / (waypointList[n].x - waypointList[n-1].x)
-    float diffangle = newangle - curangle;
-  }
-}
-
-/// In future do a set yaw rate to match whatever has the lowest limit
+// In future do a set yaw rate to match whatever has the lowest limit
 
 int main (int argc, char**argv)
 {
-
-  formation("square");
-
-  std::vector<gnc_api_waypoint> waypointList;
-	gnc_api_waypoint nextWayPoint;
-	nextWayPoint.x = 0; //update this to 0,1
-	nextWayPoint.y = 0;
-	nextWayPoint.z = 3;
-	nextWayPoint.psi = 0;
-	waypointList.push_back(nextWayPoint);
-	nextWayPoint.x = 5; //1
-	nextWayPoint.y = 1;
-	nextWayPoint.z = 3;
-	nextWayPoint.psi = -90;
-	waypointList.push_back(nextWayPoint);
-	nextWayPoint.x = 4; //2
-	nextWayPoint.y = 0;
-	nextWayPoint.z = 3;
-	nextWayPoint.psi = 0;
-	waypointList.push_back(nextWayPoint);
-	nextWayPoint.x = 4; //3
-	nextWayPoint.y = 5;
-	nextWayPoint.z = 3;
-	nextWayPoint.psi = 0;
-	waypointList.push_back(nextWayPoint);
-	nextWayPoint.x = 5; //4
-	nextWayPoint.y = 4;
-	nextWayPoint.z = 3;
-	nextWayPoint.psi = 90;
-	waypointList.push_back(nextWayPoint);
-	nextWayPoint.x = 0; //5
-	nextWayPoint.y = 4;
-	nextWayPoint.z = 3;
-	nextWayPoint.psi = 90;
-	waypointList.push_back(nextWayPoint);
-	nextWayPoint.x = 1; //6
-	nextWayPoint.y = 0;
-	nextWayPoint.z = 5;
-	nextWayPoint.psi = 180;
-	waypointList.push_back(nextWayPoint);
-	nextWayPoint.x = 1; //7
-	nextWayPoint.y = 0;
-	nextWayPoint.z = 3;
-	nextWayPoint.psi = 180;
-	waypointList.push_back(nextWayPoint); //8 WP?
-
-  int k;
-  for (k=0; k<8; k++){
-
-  }
-
+	int n = 0;
+	vector<gnc_WP> wp_in = func_wplist();
+	push_wp(wp_in, n);
+	// pose_pub = n.advertise<geometry_msgs::PoseStamped>("/drone1/mavros/setpoint_position/local", 10); // For Built in setpoint WP control
 
 }

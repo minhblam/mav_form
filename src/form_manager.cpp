@@ -19,6 +19,10 @@
 #include <iostream>
 #include <string>
 
+// Navigation Manager
+
+// Modifies given waypoints from the navigation manager and creates offset for any given number of drones to pass down to the tracjectory manager.
+
 //Topics
 //Drone 2 State
 mavros_msgs::State fs_state;

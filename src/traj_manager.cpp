@@ -19,6 +19,10 @@
 #include <iostream>
 #include <string>
 
+// Trajectory Manager
+
+// Manages direct control of drones. This includes connection of telemetry and control of all drones and receives pathplanning commands from the formation manager.
+
 //Topics
 //Drone 2 State
 mavros_msgs::State fs_state;
