@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <math.h>
+#include <control_functions.hpp>
 
 // Navigation Manager
 
@@ -7,19 +9,16 @@
 
 
 
-
+//Implementation
 // #include <geometry_msgs/PoseStamped.h>
 
 // ros::Publisher pose_pub;                  // Drone 2 State Control Must be from main variable pose_pub.publish(value)
 
 // geometry_msgs::PoseStamped fp_pose;        // Probably Redundant Master Message
 
-struct gnc_WP{
-	float x; ///< distance in x with respect to your reference frame
-	float y; ///< distance in y with respect to your reference frame
-	float z; ///< distance in z with respect to your reference frame
-	float psi; ///< rotation about the third axis of your reference frame
-};
+
+//Independent Test
+
 
 using namespace std;
 
@@ -91,11 +90,26 @@ void push_wp (vector<gnc_WP> wp_in, int k){
 
 // In future do a set yaw rate to match whatever has the lowest limit
 
+
+//******* Topic Waypoints???
+
+// ros::ServiceCLient waypointList
+// mavros_msgs::WaypointList wplist Probably don't need
+
+
+
+
+//*Main
+// waypointlist = n.serviceCLient<mavros_msgs::WaypointList>"(/drone2/mavros/mission/waypoints");
+
+
 int main (int argc, char**argv)
 {
+	//Replace int n with whatever was passed
 	int n = 0;
 	vector<gnc_WP> wp_in = func_wplist();
 	push_wp(wp_in, n);
 	// pose_pub = n.advertise<geometry_msgs::PoseStamped>("/drone1/mavros/setpoint_position/local", 10); // For Built in setpoint WP control
+	return 0;
 
 }
