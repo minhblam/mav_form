@@ -6,6 +6,10 @@
 #include <iostream>
 // #include <string>
 
+#include <geometry_msgs/PoseArray.h>
+ros::Publisher wp_pub;
+ros::Subscriber wp_sub;
+geometry_msgs::PoseArray wp_pose;
 
 
 
@@ -50,6 +54,8 @@ void run_form(std::string form){
 
 int main(int argc, char **argv)
 {
+  wp_sub = n.subscribe<geometry_msgs::PoseArray>("/wp_pre/setpoint_position/local",10);
+  wp_pub = n.advertise<geometry_msgs::PoseArray>("/wp_form/setpoint_position/local",10);
   run_form('v');
   return 0;
 }

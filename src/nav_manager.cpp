@@ -18,6 +18,9 @@
 
 
 //Independent Test
+#include <geometry_msgs/PoseArray.h>
+ros::Publisher wp_pub;
+geometry_msgs::PoseArray wp_pose;
 
 
 using namespace std;
@@ -91,12 +94,6 @@ void push_wp (vector<gnc_WP> wp_in, int k){
 // In future do a set yaw rate to match whatever has the lowest limit
 
 
-//******* Topic Waypoints???
-
-// ros::ServiceCLient waypointList
-// mavros_msgs::WaypointList wplist Probably don't need
-
-
 
 
 //*Main
@@ -109,7 +106,9 @@ int main (int argc, char**argv)
 	int n = 0;
 	vector<gnc_WP> wp_in = func_wplist();
 	push_wp(wp_in, n);
+	wp_pub = n.advertise<geometry_msgs::PoseArray>("/wp_pre/setpoint_position/local",10);
 	// pose_pub = n.advertise<geometry_msgs::PoseStamped>("/drone1/mavros/setpoint_position/local", 10); // For Built in setpoint WP control
 	return 0;
+
 
 }
