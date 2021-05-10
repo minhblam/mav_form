@@ -162,9 +162,6 @@ struct gnc_WP{
 };
 
 int init_publisher_subscriber(ros::NodeHandle controlnode){
-  // ros::init (argc,argv,"gnc_node");
-  // ros::NodeHandle n;
-
   std::string ros_namespace; // Modify this to cycle for each drone
 	if (!controlnode.hasParam("namespace"))
 	{
@@ -176,12 +173,12 @@ int init_publisher_subscriber(ros::NodeHandle controlnode){
 	}
 
   //Drone 2 Position Publishing
-  pose_pub = n.advertise<geometry_msgs::PoseStamped>((ros_namespace + "/mavros/setpoint_position/local").c_str(), 10); // For Built in setpoint WP control
+  pose_pub = controlnode.advertise<geometry_msgs::PoseStamped>((ros_namespace + "/mavros/setpoint_position/local").c_str(), 10); // For Built in setpoint WP control
 
   //Drone 2 Velocity Publishing
   // tstamp_pub = n.advertise<geometry_msgs::TwistStamped>("/drone1/mavros/setpoint_attitude/cmd_vel", 10); //might be setpoint_velocity/cmd_vel
-  tstamp_pub = n.advertise<geometry_msgs::TwistStamped>((ros_namespace + "/mavros/setpoint_velocity/cmd_vel").c_str(), 10);
-  twist_pub = n.advertise<mavros_msgs::PositionTarget>((ros_namespace + "/mavros/setpoint_raw/local").c_str(),10);
+  tstamp_pub = controlnode.advertise<geometry_msgs::TwistStamped>((ros_namespace + "/mavros/setpoint_velocity/cmd_vel").c_str(), 10);
+  twist_pub = controlnode.advertise<mavros_msgs::PositionTarget>((ros_namespace + "/mavros/setpoint_raw/local").c_str(),10);
 
   //Drone 2 Position Subscribing
   pose_sub = controlnode.subscribe<nav_msgs::Odometry>((ros_namespace + "/mavros/global_position/local").c_str(), 10,pose_cb);
@@ -196,7 +193,8 @@ int init_publisher_subscriber(ros::NodeHandle controlnode){
 
   // set_speed_client = n.serviceClient<mavros_msgs::CommandLong>("/drone1/mavros/cmd/command");
   // set_speed_client = n.serviceClient<mavros_msgs::ParamSet>("/drone2/mavros/param/set");
-})
+  return 0;
+};
 
 
 

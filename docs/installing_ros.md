@@ -17,8 +17,8 @@ sudo apt-get install python-wstool python-rosinstall-generator python-catkin-too
 
 Then, initialize the catkin workspace:
 ```
-mkdir -p ~/bebop_ws/src
-cd ~/bebop_ws
+mkdir -p ~/mav_ws/src
+cd ~/mav_ws
 catkin init
 ```
 
@@ -26,8 +26,8 @@ catkin init
 
 Install `mavros` and `mavlink` from source:
 ```
-cd ~/bebop_ws
-wstool init ~/bebop_ws/src
+cd ~/mav_ws
+wstool init ~/mav_ws/src
 
 rosinstall_generator --upstream mavros | tee /tmp/mavros.rosinstall
 rosinstall_generator mavlink | tee -a /tmp/mavros.rosinstall
@@ -39,7 +39,7 @@ catkin build
 ```
 Add a line to end of `~/.bashrc` by running the following command:
 ```
-echo "source ~/bebop_ws/devel/setup.bash" >> ~/.bashrc
+echo "source ~/mav_ws/devel/setup.bash" >> ~/.bashrc
 ```
 
 update global variables
@@ -49,35 +49,27 @@ source ~/.bashrc
 
 install geographiclib dependancy 
 ```
-sudo ~/bebop_ws/src/mavros/mavros/scripts/install_geographiclib_datasets.sh
+sudo ~/mav_ws/src/mavros/mavros/scripts/install_geographiclib_datasets.sh
 ```
 
-## 4. Clone Simulation ROS package 
+## 4. Clone Simulation Control Package
 
 ```
-cd ~/bebop_ws/src
-git clone https://github.com/minhlam61/b2_sim.git
+cd ~/mav_ws/src
+git clone https://github.com/minhlam61/mav_form.git
 ```
-Repository should now be copied to `~/bebop_ws/src/b2_sim/` (don't run this line. This is just saying that if you browse in the file manager, you will see those folders).
+Repository should now be copied to `~/mav_ws/src/mav_form/` (don't run this line. This is just saying that if you browse in the file manager, you will see those folders).
 
 Run the following to tell gazebo where to look for the models 
 ```
-echo "GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:$HOME/bebop_ws/src/b2_sim/models" >> ~/.bashrc
+echo "GAZEBO_MODEL_PATH=${GAZEBO_MODEL_PATH}:$HOME/mav_ws/src/mav_form/models" >> ~/.bashrc
 ```
 
-## 5. Clone GNC ROS package 
-
-This ROS package comes with a GNC API that will make scripting the drone easy.
-
-```
-git clone https://github.com/minhlam61/b2_gnc.git
-```
-
-## 6. Build instructions
-   Inside `bebop_ws`, run `catkin build`:
+## 5. Build instructions
+   Inside `mav_ws`, run `catkin build`:
 
 ```
-cd ~/bebop_ws
+cd ~/mav_ws
 catkin build
 ```
 update global variables
@@ -85,22 +77,22 @@ update global variables
 source ~/.bashrc
 ```
 
-## 7. Verify ROS Plugins for Gazebo are installed
+## 6. Verify ROS Plugins for Gazebo are installed
 ```
 sudo apt install ros-melodic-gazebo-ros ros-melodic-gazebo-plugins
 ```
 
-## 8. Editing ArduPilot Package
+## 7. Editing ArduPilot Package
 
 To support multi-drone presence, extra modifications are needed to the ArduPilot package.
 
 ### Easy Process TEST 
 
 ```
-cp bebop_form/src/b2_sim/scripts/ardu-parms/gazebo-drone1.parm ardupilot/Tools/autotest/default_params/
-cp bebop_form/src/b2_sim/scripts/ardu-parms/gazebo-drone2.parm ardupilot/Tools/autotest/default_params/
-cp bebop_form/src/b2_sim/scripts/ardu-parms/gazebo-drone3.parm ardupilot/Tools/autotest/default_params/
-cp bebop_form/src/b2_sim/scripts/ardu-parms/gazebo-drone4.parm ardupilot/Tools/autotest/default_params/
+cp mav_form/src/b2_sim/scripts/ardu-parms/gazebo-drone1.parm ardupilot/Tools/autotest/default_params/
+cp mav_form/src/b2_sim/scripts/ardu-parms/gazebo-drone2.parm ardupilot/Tools/autotest/default_params/
+cp mav_form/src/b2_sim/scripts/ardu-parms/gazebo-drone3.parm ardupilot/Tools/autotest/default_params/
+cp mav_form/src/b2_sim/scripts/ardu-parms/gazebo-drone4.parm ardupilot/Tools/autotest/default_params/
 ```
 
 ### Manual Process

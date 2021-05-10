@@ -70,7 +70,7 @@ void push_wp (vector<gnc_WP> wp_in){
 		wp_pose.position.x = wp_in[n].x;
 		wp_pose.position.y = wp_in[n].y;
 		wp_pose.position.z = wp_in[n].z;
-		wp_posearray.poses.pushback(wp_pose);
+		wp_posearray.poses.push_back(wp_pose);
 		float angle1 = atan( (wp_in[n+2].x - wp_in[n+1].x)/(wp_in[n+2].y - wp_in[n+1].y) )*180/M_PI;
 		float angle2= atan((wp_in[n+1].x - wp_in[n].x)/(wp_in[n+1].y - wp_in[n].y))*180/M_PI;
 		float angle = angle1 - angle2;
@@ -97,7 +97,7 @@ void push_wp (vector<gnc_WP> wp_in){
 			wp_pose.orientation.y = qy;
 			wp_pose.orientation.z = qz;
 
-			wp_posearray.poses.pushback(wp_pose);
+			wp_posearray.poses.push_back(wp_pose);
 		}
     }
 
@@ -113,10 +113,12 @@ void push_wp (vector<gnc_WP> wp_in){
 
 int main (int argc, char**argv)
 {
+	ros::init(argc, argv, "gnc_node");
+	ros::NodeHandle gnc_node("~");
 	//Something to make this run once for ROScore(until the function is completed)
 	vector<gnc_WP> wp_in = func_wplist();
 	push_wp(wp_in);
-	wp_pub = n.advertise<geometry_msgs::PoseArray>("/gnc/goal",10);
+	wp_pub = gnc_node.advertise<geometry_msgs::PoseArray>("/gnc/goal",10);
 	// pose_pub = n.advertise<geometry_msgs::PoseStamped>("/drone1/mavros/setpoint_position/local", 10); // For Built in setpoint WP control
 	return 0;
 }

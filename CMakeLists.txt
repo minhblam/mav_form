@@ -116,7 +116,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -200,23 +200,17 @@ include_directories(
 
 # Mission Logic
 
-add_executable(follower src/follower.cpp)
-target_link_libraries(follower ${catkin_LIBRARIES})
+add_executable(nav_manager src/nav_manager.cpp)
+target_link_libraries(nav_manager ${catkin_LIBRARIES})
 
-add_executable(control src/control.cpp)
-target_link_libraries(control ${catkin_LIBRARIES})
+# add_executable(form_manager src/form_manager.cpp)
+# target_link_libraries(form_manager ${catkin_LIBRARIES})
 
-add_executable(mission1 src/mission1.cpp)
-target_link_libraries(mission1 ${catkin_LIBRARIES})
+# add_executable(traj_manager src/traj_manager.cpp)
+# target_link_libraries(traj_manager ${catkin_LIBRARIES})
 
-add_executable(straight_square src/straight_square.cpp)
-target_link_libraries(straight_square ${catkin_LIBRARIES})
+# add_executable(follower src/follower.cpp)
+# target_link_libraries(follower ${catkin_LIBRARIES})
 
-add_executable(square src/square.cpp)
-target_link_libraries(square ${catkin_LIBRARIES})
-
-add_executable(square1 src/square1.cpp)
-target_link_libraries(square1 ${catkin_LIBRARIES})
-
-add_executable(square2 src/square2.cpp)
-target_link_libraries(square2 ${catkin_LIBRARIES})
+# add_executable(mission1 src/mission1.cpp)
+# target_link_libraries(mission1 ${catkin_LIBRARIES})

@@ -48,12 +48,12 @@ update global variables
 source ~/.bashrc
 ```
 
-## Associated Repositories
+<!-- ## Associated Repositories
 [b2_sim](https://github.com/minhlam61/b2_sim)
 - Repo containing gazebo worlds designed for AruPilot SITL control and quadcopter spawn layouts
 
 [b2_gnc](https://github.com/minhlam61/b2_gnc)
-- Repo containing guidance, navigation and control logic including examples mission programs
+- Repo containing guidance, navigation and control logic including examples mission programs -->
 
 ## Resources 
 
@@ -65,7 +65,6 @@ source ~/.bashrc
 http://ardupilot.org/copter/index.html
 
 http://ardupilot.org/copter/docs/parameters.html#wpnav-parameters
-
 
 https://discuss.ardupilot.org/
 
