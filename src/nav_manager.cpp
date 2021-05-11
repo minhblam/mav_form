@@ -9,14 +9,14 @@
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/Pose.h>
 
-
 ros::Publisher wp_pub;
 geometry_msgs::PoseArray wp_posearray;
 geometry_msgs::Pose wp_pose;
 
 using namespace std;
 
-vector<gnc_WP> func_wplist (){
+vector<gnc_WP> func_wplist()
+{
 	vector<gnc_WP> wp_in;
 	gnc_WP wp_list;
 	wp_list.x = 0; //update this to 0,1
@@ -47,15 +47,17 @@ vector<gnc_WP> func_wplist (){
 	return wp_in;
 }
 
-void push_wp (vector<gnc_WP> wp_in){
-	vector<gnc_WP>wp_out;
+void push_wp(vector<gnc_WP> wp_in)
+{
+	vector<gnc_WP> wp_out;
 	gnc_WP newWP;
 
-	for (int n=0 ; n<wp_in.size()-1 ; n++ ){  
+	for (int n = 0; n < wp_in.size() - 1; n++)
+	{
 		// // Old solution?
-        // newWP.x = wp_in[n].x;
-        // newWP.y = wp_in[n].y;
-        // newWP.z = wp_in[n].z;
+		// newWP.x = wp_in[n].x;
+		// newWP.y = wp_in[n].y;
+		// newWP.z = wp_in[n].z;
 		// wp_out.push_back(newWP);
 		// float angle1 = atan( (wp_in[n+2].x - wp_in[n+1].x)/(wp_in[n+2].y - wp_in[n+1].y) )*180/M_PI;
 		// float angle2= atan((wp_in[n+1].x - wp_in[n].x)/(wp_in[n+1].y - wp_in[n].y))*180/M_PI;
@@ -65,18 +67,19 @@ void push_wp (vector<gnc_WP> wp_in){
 		// 	newWP.psi = atan( (wp_in[n+2].x - wp_in[n+1].x)/(wp_in[n+2].y - wp_in[n+1].y) )*180/M_PI;
 		// 	wp_out.push_back(newWP);
 		// }
-		
+
 		//new solution?
 		wp_pose.position.x = wp_in[n].x;
 		wp_pose.position.y = wp_in[n].y;
 		wp_pose.position.z = wp_in[n].z;
 		wp_posearray.poses.push_back(wp_pose);
-		float angle1 = atan( (wp_in[n+2].x - wp_in[n+1].x)/(wp_in[n+2].y - wp_in[n+1].y) )*180/M_PI;
-		float angle2= atan((wp_in[n+1].x - wp_in[n].x)/(wp_in[n+1].y - wp_in[n].y))*180/M_PI;
+		float angle1 = atan((wp_in[n + 2].x - wp_in[n + 1].x) / (wp_in[n + 2].y - wp_in[n + 1].y)) * 180 / M_PI;
+		float angle2 = atan((wp_in[n + 1].x - wp_in[n].x) / (wp_in[n + 1].y - wp_in[n].y)) * 180 / M_PI;
 		float angle = angle1 - angle2;
 
-		if (angle != 0){
-			float yaw = atan( (wp_in[n+2].x - wp_in[n+1].x)/(wp_in[n+2].y - wp_in[n+1].y) )*180/M_PI;
+		if (angle != 0)
+		{
+			float yaw = atan((wp_in[n + 2].x - wp_in[n + 1].x) / (wp_in[n + 2].y - wp_in[n + 1].y)) * 180 / M_PI;
 			float pitch = 0;
 			float roll = 0;
 
@@ -99,26 +102,25 @@ void push_wp (vector<gnc_WP> wp_in){
 
 			wp_posearray.poses.push_back(wp_pose);
 		}
-    }
+	}
 
 	// cout << wp_out[k].x << endl;
 	wp_pub.publish(wp_posearray);
 }
-
 
 // new WP adds the base WP. formation creates the new offset WPs for drones to follow.
 // The active WP is selected by nav manager and sent to form_control.
 
 // In future do a set yaw rate to match whatever has the lowest limit
 
-int main (int argc, char**argv)
+int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "gnc_node");
 	ros::NodeHandle gnc_node("~");
 	//Something to make this run once for ROScore(until the function is completed)
 	vector<gnc_WP> wp_in = func_wplist();
 	push_wp(wp_in);
-	wp_pub = gnc_node.advertise<geometry_msgs::PoseArray>("/gnc/goal",10);
+	wp_pub = gnc_node.advertise<geometry_msgs::PoseArray>("/gnc/goal", 10);
 	// pose_pub = n.advertise<geometry_msgs::PoseStamped>("/drone1/mavros/setpoint_position/local", 10); // For Built in setpoint WP control
 	return 0;
 }
