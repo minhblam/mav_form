@@ -222,19 +222,19 @@ int set_mode(std::string mode)
 /*      Establish Connection
 */
 
-int init_publisher_subscriber(ros::NodeHandle controlnode)
+int init_publisher_subscriber(ros::NodeHandle controlnode, std::string ros_namespace)
 {
   std::string ros_namespace; // Modify this to cycle for each drone
-  if (!controlnode.hasParam("namespace"))
-  {
+  // if (!controlnode.hasParam("namespace"))
+  // {
 
-    ROS_INFO("using default namespace");
-  }
-  else
-  {
-    controlnode.getParam("namespace", ros_namespace);
-    ROS_INFO("using namespace %s", ros_namespace.c_str());
-  }
+  //   ROS_INFO("using default namespace");
+  // }
+  // else
+  // {
+  //   controlnode.getParam("namespace", ros_namespace);
+  //   ROS_INFO("using namespace %s", ros_namespace.c_str());
+  // }
 
   //Waypoint Position Publishing
   pose_pub = controlnode.advertise<geometry_msgs::PoseStamped>((ros_namespace + "/mavros/setpoint_position/local").c_str(), 10); // For Built in setpoint WP control

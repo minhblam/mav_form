@@ -32,29 +32,18 @@ void line_form(float x_off) //, int k
     wp_pose.position.y = wp_subpose.poses[n].position.y + x_off;
     wp_pose.position.z = wp_subpose.poses[n].position.z + x_off;
 
-    wp_pose.orientation.w = wp_subpose.poses[n].orientation.w;
-    wp_pose.orientation.x = wp_subpose.poses[n].orientation.x;
-    wp_pose.orientation.y = wp_subpose.poses[n].orientation.y;
-    wp_pose.orientation.z = wp_subpose.poses[n].orientation.z;
+    // wp_pose.orientation.w = wp_subpose.poses[n].orientation.w;
+    // wp_pose.orientation.x = wp_subpose.poses[n].orientation.x;
+    // wp_pose.orientation.y = wp_subpose.poses[n].orientation.y;
+    // wp_pose.orientation.z = wp_subpose.poses[n].orientation.z;
     //Ideally the below:
-    // wp_pose.pose.orientation = wp_subpose[n].orientation;
+    wp_pose.orientation = wp_subpose.poses[n].orientation;
     wp_posearray.poses.push_back(wp_pose);
     // wp_posearray.header.seq.push_back(wp_pose.header.seq);
     // ROS_INFO("seq: %i  x: %f  y: %f  z: %f, ", wp_posearray.header.seq, wp_posearray.poses[n].position.x,wp_posearray.poses[n].position.y, wp_posearray.poses[n].position.z);
   }
-  
-
   wp_pub.publish(wp_posearray);
 }
-
-// void run_form(std::string form)
-// {
-//   std::string line;
-//   if(form == line)
-//   {
-//     line_form(2);// Replace with subscribed values from nav_manager
-//   }
-// }
 
 int main(int argc, char **argv)
 {

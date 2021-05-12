@@ -7,33 +7,24 @@
 
 int main(int argc, char **argv)
 {
+  ros::init(argc, argv, "gnc_node");
+	ros::NodeHandle gnc_node("~");
+  init_publisher_subscriber(gnc_node, /drone1);
+  init_publisher_subscriber(gnc_node, /drone2);
+  init_publisher_subscriber(gnc_node, /drone3);
 
   wait4connect();
   set_mode("GUIDED");
   takeoff(5);
-  // forward(20);
-  turn();
-  
 
-  int counter = 0;
+
+
   ros::Rate loop_rate(2);
   while (ros::ok())
   {
-    // turn(waypointList[counter].x,waypointList[counter].y);
+
     ros::spinOnce();
     loop_rate.sleep();
-    // if (d_to_WP(nextWayPoint.x, nextWayPoint.y) < 0.3)
-    // {
-    //   forward(100);
-    //   if (counter < waypointList.size())
-    //   {
-    //     counter++;
-    //   }
-    //   else
-    //   {
-    //     forward(10);
-    //   }
-    // }
 
   }
   return 0;
