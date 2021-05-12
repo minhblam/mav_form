@@ -35,6 +35,24 @@ For all 4 drones to fly in a square
 ```
 roslaunch b2_gnc multi_square_sol.launch
 ```
+## Bashrc
+Open `~/.bashrc` for editing:
+```
+gedit ~/.bashrc
+```
+
+Add these lines to end of `~/.bashrc` (the file open in the text editor):
+```
+export PATH=$PATH:$HOME/ardupilot/Tools/autotest
+export PATH=/usr/lib/ccache:$PATH
+```
+
+Save and close the text editor.
+
+Reload `~/.bashrc`:
+```
+. ~/.bashrc
+```
 
 ## Editing control code
 

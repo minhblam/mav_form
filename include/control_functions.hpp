@@ -41,7 +41,7 @@ ros::Publisher twist_pub;
 ros::ServiceClient set_mode_client; //Enables String Input for setting GUIDED mode among others
 ros::ServiceClient arming_client;   //Enables Built-in Arming of drone
 ros::ServiceClient takeoff_client;  //Enables Built-in Takeoff
-ros::ServiceCLient command_client;  //Primarily for Set Speed Command
+ros::ServiceClient command_client;  //Primarily for Set Speed Command
 
 
 /*      Control Functions
@@ -72,7 +72,7 @@ struct gnc_WP
   float y;   ///< distance in y with respect to your reference frame
   float z;   ///< distance in z with respect to your reference frame
   float psi; ///< rotation about the third axis of your reference frame
-}
+};
 
 struct q_form
 {
@@ -80,11 +80,11 @@ struct q_form
   float x;
   float y;
   float z;
-}
+};
 
 std::vector<q_form> q_to_yaw(float yaw) // In radians
 {
-  vector<q_form> angle_in;
+  std::vector<q_form> angle_in;
   q_form angle;
   //"Float yaw = yaw"
   float pitch = 0;
