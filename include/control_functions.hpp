@@ -29,8 +29,6 @@ geometry_msgs::PoseStamped posestamped; // Probably Redundant Master Message
 nav_msgs::Odometry pose; //.pose.pose.orientation.xyzw and pose.pose.position.xyz
 geometry_msgs::TwistStamped twist_yaw;
 
-float f_heading;
-float fpsi = 0;
 
 //Topics
 ros::Subscriber state_sub; // Drone 2 State Feedback
@@ -44,6 +42,8 @@ ros::ServiceClient takeoff_client;  //Enables Built-in Takeoff
 ros::ServiceClient command_client;  //Primarily for Set Speed Command
 
 
+
+
 /*      Control Functions
 */
 void pose_cb(const nav_msgs::Odometry::ConstPtr &msg)
@@ -53,15 +53,16 @@ void pose_cb(const nav_msgs::Odometry::ConstPtr &msg)
   float q1 = pose.pose.pose.orientation.x;
   float q2 = pose.pose.pose.orientation.y;
   float q3 = pose.pose.pose.orientation.z;
-  float fpsi = atan2((2 * (q0 * q3 + q1 * q2)), (1 - 2 * (pow(q2, 2) + pow(q3, 2))));
-  // ROS_INFO("Follower Heading %f", fpsi*(180/M_PI));
-  f_heading = fpsi;
+  float psi = atan2((2 * (q0 * q3 + q1 * q2)), (1 - 2 * (pow(q2, 2) + pow(q3, 2))));
+  // ROS_INFO("Follower Heading %f", psi*(180/M_PI));
 }
 
 void state_cb(const mavros_msgs::State::ConstPtr &msg)
 {
   state = *msg;
 }
+
+
 
 /*      Pathing Functions
 */
@@ -123,7 +124,7 @@ float yaw_to_q (std::vector<q_form> q)
 */
 int wait4connect()
 {
-  ROS_INFO("Waiting for Follower FCU connection");
+  ROS_INFO("Waiting for FCU connection");
   // wait for FCU connection
   while (ros::ok() && !state.connected)
   {
@@ -132,12 +133,12 @@ int wait4connect()
   }
   if (state.connected)
   {
-    ROS_INFO("Connected to Follower FCU");
+    ROS_INFO("Connected to FCU");
     return 0;
   }
   else
   {
-    ROS_INFO("Error connecting to Follower drone");
+    ROS_INFO("Error connecting to drone");
     return -1;
   }
 }
@@ -167,7 +168,7 @@ int set_speed(float speed__mps)
 int takeoff(float takeoff_alt)
 {
 
-  ROS_INFO("Arming Follower drone");
+  ROS_INFO("Arming drone");
   mavros_msgs::CommandBool arm_request;
   arm_request.request.value = true;
   while (!state.armed && !arm_request.response.success && ros::ok())
@@ -178,11 +179,11 @@ int takeoff(float takeoff_alt)
   }
   if (arm_request.response.success)
   {
-    ROS_INFO("Follower Arming Successful");
+    ROS_INFO("Arming Successful");
   }
   else
   {
-    ROS_INFO("Follower Arming failed with %d", arm_request.response.success);
+    ROS_INFO("Arming failed with %d", arm_request.response.success);
     return -1;
   }
 
@@ -192,11 +193,11 @@ int takeoff(float takeoff_alt)
   if (takeoff_client.call(srv_takeoff))
   {
     sleep(3);
-    ROS_INFO("Follower Takeoff Sent %d", srv_takeoff.response.success);
+    ROS_INFO("Takeoff Sent %d", srv_takeoff.response.success);
   }
   else
   {
-    ROS_ERROR("Follower Failed Takeoff");
+    ROS_ERROR("Failed Takeoff");
     return -2;
   }
   sleep(2);
@@ -210,32 +211,22 @@ int set_mode(std::string mode)
   srv_setMode.request.custom_mode = mode;
   if (set_mode_client.call(srv_setMode))
   {
-    ROS_INFO("Follower SetMode send ok");
+    ROS_INFO("SetMode send ok");
   }
   else
   {
-    ROS_ERROR("Follower Failed SetMode");
+    ROS_ERROR("Failed SetMode");
     return -1;
   }
 }
+
+
 
 /*      Establish Connection
 */
 
 int init_publisher_subscriber(ros::NodeHandle controlnode, std::string ros_namespace)
 {
-  std::string ros_namespace; // Modify this to cycle for each drone
-  // if (!controlnode.hasParam("namespace"))
-  // {
-
-  //   ROS_INFO("using default namespace");
-  // }
-  // else
-  // {
-  //   controlnode.getParam("namespace", ros_namespace);
-  //   ROS_INFO("using namespace %s", ros_namespace.c_str());
-  // }
-
   //Waypoint Position Publishing
   pose_pub = controlnode.advertise<geometry_msgs::PoseStamped>((ros_namespace + "/mavros/setpoint_position/local").c_str(), 10); // For Built in setpoint WP control
   //Velocity Publishing
@@ -252,6 +243,6 @@ int init_publisher_subscriber(ros::NodeHandle controlnode, std::string ros_names
   takeoff_client = controlnode.serviceClient<mavros_msgs::CommandTOL>((ros_namespace + "/mavros/cmd/takeoff").c_str());
 
   command_client = controlnode.serviceClient<mavros_msgs::CommandLong>((ros_namespace +"/mavros/cmd/command").c_str());
-  // set_speed_client = n.serviceClient<mavros_msgs::ParamSet>("/drone2/mavros/param/set");
+
   return 0;
 }

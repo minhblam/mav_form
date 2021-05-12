@@ -206,8 +206,8 @@ target_link_libraries(nav_manager ${catkin_LIBRARIES})
 add_executable(form_manager src/form_manager.cpp)
 target_link_libraries(form_manager ${catkin_LIBRARIES})
 
-# add_executable(traj_manager src/traj_manager.cpp)
-# target_link_libraries(traj_manager ${catkin_LIBRARIES})
+add_executable(traj_manager src/traj_manager.cpp)
+target_link_libraries(traj_manager ${catkin_LIBRARIES})
 
 # add_executable(follower src/follower.cpp)
 # target_link_libraries(follower ${catkin_LIBRARIES})

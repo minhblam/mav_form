@@ -1,13 +1,13 @@
 // Navigation Manager
 // Input primary waypoints to reach and modify to accomodate flight capabilities
 
-#include <iostream>
-#include <vector>
-#include <math.h>
+// #include <iostream>
+// #include <vector>
+// #include <math.h>
 
 #include <control_functions.hpp>
 #include <geometry_msgs/PoseArray.h>
-#include <geometry_msgs/Pose.h>
+// #include <geometry_msgs/Pose.h>
 
 ros::Publisher wp_pub;
 geometry_msgs::PoseArray wp_posearray;
@@ -31,48 +31,30 @@ std::vector<gnc_WP> func_wplist()
 	wp_list.y = 3;
 	wp_list.z = 2;
 	wp_in.push_back(wp_list);
-	wp_list.x = 9; //3
-	wp_list.y = 5;
-	wp_list.z = 2;
-	wp_in.push_back(wp_list);
-	wp_list.x = 9; //4
-	wp_list.y = 7;
-	wp_list.z = 2;
-	wp_in.push_back(wp_list);
-	wp_list.x = 5; //5
-	wp_list.y = 9;
-	wp_list.z = 2;
-	wp_in.push_back(wp_list);
-
+	// wp_list.x = 9; //3
+	// wp_list.y = 5;
+	// wp_list.z = 2;
+	// wp_in.push_back(wp_list);
+	// wp_list.x = 9; //4
+	// wp_list.y = 7;
+	// wp_list.z = 2;
+	// wp_in.push_back(wp_list);
+	// wp_list.x = 5; //5
+	// wp_list.y = 9;
+	// wp_list.z = 2;
+	// wp_in.push_back(wp_list);
 	return wp_in;
 }
 
 void push_wp(std::vector<gnc_WP> wp_in)
 {
-	std::vector<gnc_WP> wp_out;
-	gnc_WP newWP;
-
-	for (int n = 0; n < wp_in.size() - 1; n++)
+	for (int n = 0; n < wp_in.size(); n++)
 	{
-		// // Old solution?
-		// newWP.x = wp_in[n].x;
-		// newWP.y = wp_in[n].y;
-		// newWP.z = wp_in[n].z;
-		// wp_out.push_back(newWP);
-		// float angle1 = atan( (wp_in[n+2].x - wp_in[n+1].x)/(wp_in[n+2].y - wp_in[n+1].y) )*180/M_PI;
-		// float angle2= atan((wp_in[n+1].x - wp_in[n].x)/(wp_in[n+1].y - wp_in[n].y))*180/M_PI;
-		// float angle = angle1 - angle2;
-		// // cout <<"Angle WP" <<n+2 << "_" << n+1 << " is " << angle1 << " degrees, WP" << n+1 << "_" << n << " is " << angle2 << " degrees, difference is " << angle <<endl;
-		// if (angle != 0){
-		// 	newWP.psi = atan( (wp_in[n+2].x - wp_in[n+1].x)/(wp_in[n+2].y - wp_in[n+1].y) )*180/M_PI;
-		// 	wp_out.push_back(newWP);
-		// }
-
-		//new solution?
 		wp_pose.position.x = wp_in[n].x;
 		wp_pose.position.y = wp_in[n].y;
 		wp_pose.position.z = wp_in[n].z;
 		wp_posearray.poses.push_back(wp_pose);
+
 		float angle1 = atan((wp_in[n + 2].x - wp_in[n + 1].x) / (wp_in[n + 2].y - wp_in[n + 1].y)) * 180 / M_PI;
 		float angle2 = atan((wp_in[n + 1].x - wp_in[n].x) / (wp_in[n + 1].y - wp_in[n].y)) * 180 / M_PI;
 		float angle = angle1 - angle2;
@@ -107,7 +89,7 @@ void push_wp(std::vector<gnc_WP> wp_in)
 
 	// cout << wp_out[k].x << endl;
 	wp_pub.publish(wp_posearray);
-	ROS_INFO("Published initial waypoints");
+	// ROS_INFO("Published initial waypoints x:%f y:%f z:%f",wp_pose.position.x,wp_pose.position.y,wp_pose.position.z);
 }
 
 // new WP adds the base WP. formation creates the new offset WPs for drones to follow.
@@ -123,7 +105,7 @@ int main(int argc, char **argv)
 	//Something to make this run once for ROScore(until the function is completed)
 	
 
-	wp_pub = gnc_node.advertise<geometry_msgs::PoseArray>("/gnc/goal", 10);
+	wp_pub = gnc_node.advertise<geometry_msgs::PoseArray>("/gnc/goal", 2);
 
 	/* Alternative solution??
 
@@ -135,9 +117,9 @@ int main(int argc, char **argv)
 	// }
 	
 	*/
+	
 
-
-	ros::Rate loop_rate(0.1);
+	ros::Rate loop_rate(0.5);
     while (ros::ok())
     {
       std::vector<gnc_WP> wp_in = func_wplist();
