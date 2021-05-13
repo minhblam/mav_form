@@ -48,6 +48,8 @@ std::vector<gnc_WP> func_wplist()
 
 void push_wp(std::vector<gnc_WP> wp_in)
 {
+	ROS_INFO("Int size: %zd",wp_in.size());
+	
 	for (int n = 0; n < wp_in.size(); n++)
 	{
 		wp_pose.position.x = wp_in[n].x;
@@ -85,6 +87,7 @@ void push_wp(std::vector<gnc_WP> wp_in)
 			wp_posearray.poses.push_back(wp_pose);
 			
 		}
+		// ROS_INFO("Int size: %zd",wp_posearray.size());
 	}
 
 	// cout << wp_out[k].x << endl;
