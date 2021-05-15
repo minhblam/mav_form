@@ -69,10 +69,9 @@ void state_cb(const mavros_msgs::State::ConstPtr &msg)
 
 struct gnc_WP
 {
-  float x;   ///< distance in x with respect to your reference frame
-  float y;   ///< distance in y with respect to your reference frame
-  float z;   ///< distance in z with respect to your reference frame
-  float psi; ///< rotation about the third axis of your reference frame
+  float x;   // distance in x with respect to your reference frame
+  float y;   // distance in y with respect to your reference frame
+  float z;   // distance in z with respect to your reference frame
 };
 
 struct q_form
@@ -83,11 +82,20 @@ struct q_form
   float z;
 };
 
-std::vector<q_form> q_to_yaw(float yaw) // In radians
+struct gnc_wppose
 {
-  std::vector<q_form> angle_in;
+  float x;   // distance in x with respect to your reference frame
+  float y;   // distance in y with respect to your reference frame
+  float z;   // distance in z with respect to your reference frame
+  float qw;  // quaternion in w
+  float qx;  // quaternion in x
+  float qy;  // quaternion in y
+  float qz;  // quaternion in z
+}
+
+std::vector<q_form> yaw_to_q(float yaw) // In radians
+{
   q_form angle;
-  //"Float yaw = yaw"
   float pitch = 0;
   float roll = 0;
 
@@ -106,15 +114,12 @@ std::vector<q_form> q_to_yaw(float yaw) // In radians
   angle.w = qw;
   angle.x = qx;
   angle.y = qy;
-  angle.z = qz;
+  angle.z = qz; //Might need pushback stuff idk
 
-  angle_in.push_back(angle);
-
-  return angle_in;
-  //usage is q_to_yaw(ANGLE)[0].w,x,y,z etc.
+  return angle;
 }
 
-float yaw_to_q (std::vector<q_form> q)
+float q_to_yaw (std::vector<q_form> q)
 {
   float psi = atan2((2*(q[0].w*q[0].z + q[0].x*q[0].y)), (1 - 2*(pow(q[0].y,2) + pow(q[0].z,2))) );
   return psi;
@@ -232,9 +237,9 @@ int init_publisher_subscriber(ros::NodeHandle controlnode, std::string ros_names
   //Velocity Publishing
   twist_pub = controlnode.advertise<geometry_msgs::TwistStamped>((ros_namespace + "/mavros/setpoint_velocity/cmd_vel").c_str(), 10);
   //Position Subscribing
-  pose_sub = controlnode.subscribe<nav_msgs::Odometry>((ros_namespace + "/mavros/global_position/local").c_str(), 10, pose_cb);
+  pose_sub = controlnode.subscribe<nav_msgs::Odometry>((ros_namespace + "/mavros/global_position/local").c_str(), 10, pose_cb);// add unique callback
   //State Subscribing
-  state_sub = controlnode.subscribe<mavros_msgs::State>((ros_namespace + "/mavros/state").c_str(), 10, state_cb);
+  state_sub = controlnode.subscribe<mavros_msgs::State>((ros_namespace + "/mavros/state").c_str(), 10, state_cb); //add nique callback
   //Set_Mode Client
   set_mode_client = controlnode.serviceClient<mavros_msgs::SetMode>((ros_namespace + "/mavros/set_mode").c_str());
   //Arming Client

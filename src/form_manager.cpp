@@ -7,20 +7,13 @@
 #include <string>
 #include <control_functions.hpp>
 
-#include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/Pose.h>
 ros::Publisher wp_pub;
-ros::Publisher wp_pub1;
-ros::Publisher wp_pub2;
+
 
 ros::Subscriber wp_sub;
-geometry_msgs::PoseArray wp_subpose;    //Original Waypoint Array
-geometry_msgs::PoseArray wp_posearray;  //New Waypoint Array for Drones
-geometry_msgs::PoseArray wp_posearray1; //New Waypoint Array for Drones
-geometry_msgs::PoseArray wp_posearray2; //New Waypoint Array for Drones
+
 geometry_msgs::Pose wp_pose;            //New Waypoint
-geometry_msgs::Pose wp_pose1;           //New Waypoint
-geometry_msgs::Pose wp_pose2;           //New Waypoint
 
 void nav_wp(const geometry_msgs::PoseArray::ConstPtr &msg)
 {
@@ -122,16 +115,15 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "k");
   ros::NodeHandle k;
 
-  wp_sub = k.subscribe<geometry_msgs::PoseArray>("/gnc/goal", 10, nav_wp);
-  wp_pub = k.advertise<geometry_msgs::PoseArray>("/gnc/form/d1", 2);
-  wp_pub1 = k.advertise<geometry_msgs::PoseArray>("/gnc/form/d2", 2);
-  wp_pub2 = k.advertise<geometry_msgs::PoseArray>("/gnc/form/d3", 2);
+  wp_sub = k.subscribe<geometry_msgs::Pose>("/gnc/goal", 10, nav_wp);
+  wp_pub = k.advertise<geometry_msgs::PoseArray>("/gnc/form", 2);
 
   ros::Rate loop_rate(0.3);
   while (ros::ok())
   {
-    line_form(3);
-    ROS_INFO("published");
+    if (message_received){ //Create a function for this
+      wp_pub.publish(wp_pose); //Will need to make this scalable
+    }
     ros::spinOnce();
     loop_rate.sleep();
   }

@@ -13,6 +13,9 @@
 ros::Subscriber sub_wp;
 geometry_msgs::Pose wppose_sub;
 
+ros::Publisher bool_pub;
+std_msgs::Bool wp_update;
+
 void wp_cb(const geometry_msgs::Pose::ConstPtr &msg)
 {
   wppose_sub = *msg;
@@ -31,6 +34,11 @@ void set_destination(geometry_msgs::PoseArray wp_pose) //int n
   pose_pub.publish(posestamped);
 }
 
+int wp_reached ( geometry_msgs::Pose wppose_sub )
+{
+  something about checking distance between combined drone position and shared waypoint???;
+}
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "nh");
@@ -38,10 +46,18 @@ int main(int argc, char **argv)
 
   init_publisher_subscriber(nh, "/drone1");
   sub_wp = nh.subscribe<geometry_msgs::Pose>("/gnc/form", 10, wp_cb);
+  bool_pub = nh.advertise<std_msgs::Bool>("/gnc/wpreach",10);
   wait4connect();
   set_mode("GUIDED");
   takeoff(5);
 
+  bool wp_update.data = 0;
+
+  if (wp_reached)
+  {
+    wp_update.data=1;
+    bool_pub.publish(wp_update);
+  }
 
   ros::Rate loop_rate(2);
   while (ros::ok())
