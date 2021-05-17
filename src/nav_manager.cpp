@@ -7,7 +7,7 @@
 
 #include <control_functions.hpp>
 // #include <geometry_msgs/PoseArray.h>
-#include <geometry_msgs/Pose.h>
+// #include <geometry_msgs/Pose.h>
 
 ros::Publisher wp_pub;
 // geometry_msgs::PoseArray wp_posearray;
@@ -84,9 +84,16 @@ std::vector<gnc_wppose> mod_wp(std::vector<gnc_WP> wp_in)
 	}
 }
 
-void push_wp(std::vector<gnc_wppose> wp_in)
+
+
+
+
+
+
+
+void push_wp(std::vector<gnc_wppose> wp_in, int n)
 {
-	int size_wp = func_wplist().size();
+	// int size_wp = func_wplist().size();
 
 	wp_pose.position.x = wp_in[n].x;
 	wp_pose.position.x = wp_in[n].y;
@@ -106,7 +113,7 @@ int main(int argc, char **argv)
 	ros::NodeHandle gnc_node;
 	//Something to make this run once for ROScore(until the function is completed)
 	wp_pub = gnc_node.advertise<geometry_msgs::Pose>("/gnc/goal", 2);
-	bool_sub = gnc_node.subscribe<std_msgs::Bool>("gnc/wpreach",10,wp_cb);
+	bool_sub = gnc_node.subscribe<std_msgs::Bool>("/gnc/wpreach",10,wp_cb);
 
 	int n = 0;
 	ros::Rate loop_rate(0.5);
@@ -116,7 +123,7 @@ int main(int argc, char **argv)
 		
 		if (wp_update.data){ //something needs to be done about if limit is reached
 			n++ 
-			push_wp(something);
+			push_wp(wp_in, n);
 		}
 		
 		push_wp(wp_in);

@@ -1,111 +1,51 @@
 // Navigation Manager
 // Modifies given waypoints from the navigation manager and creates offset for any given number of drones to pass down to the tracjectory manager.
 
-#include <math.h>
-#include <vector>
-#include <iostream>
-#include <string>
+// #include <math.h>
+// #include <vector>
+// #include <iostream>
+// #include <string>
 #include <control_functions.hpp>
 
-#include <geometry_msgs/Pose.h>
+// #include <geometry_msgs/Pose.h>
 ros::Publisher wp_pub;
-
 
 ros::Subscriber wp_sub;
 
-geometry_msgs::Pose wp_pose;            //New Waypoint
+
+int drone_count = 3;
+
+
+geometry_msgs::Pose wp_subpose;//New Waypoint from nav_manager
+geometry_msgs::PoseStamped wp_pubpose;
 
 void nav_wp(const geometry_msgs::PoseArray::ConstPtr &msg)
 {
   wp_subpose = *msg; //wp_subpose
 }
 
+
+
 void line_form(float xoff) //, int k
 {                //Where off is offset dist and k is the number of drones
-  // for (int i = 0; i<k-1 ;k++){ //For each drone
+  std::vector<gnc_wppose> wp_mod;
 
-  //If statement to alternate sides or something NEED HERE
-  for (int n = 0; n < wp_subpose.poses.size(); n++)
-  { //For each WP
+  wp_mod.x = wp_subpose.position.x;
+  wp_mod.y = wp_subpose.position.y;
+  wp_mod.z = wp_subpose.position.z;
+  wp_mod.qw = wp_subpose.orientation.w;
+  wp_mod.qx = wp_subpose.orientation.x;
+  wp_mod.qy = wp_subpose.orientation.y;
+  wp_mod.qz = wp_subpose.orientation.z;
+  wp_pubpose.header.frameid= 'd1';
+  wp_pubpose.pose = wp_mod;
+  wp_pub.publish(wp_pubpose);
 
-    wp_pose.position.x = wp_subpose.poses[n].position.x;
-    wp_pose.position.y = wp_subpose.poses[n].position.y;
-    wp_pose.position.z = wp_subpose.poses[n].position.z;
-
-    wp_pose.orientation.w = wp_subpose.poses[n].orientation.w;
-    wp_pose.orientation.x = wp_subpose.poses[n].orientation.x;
-    wp_pose.orientation.y = wp_subpose.poses[n].orientation.y;
-    wp_pose.orientation.z = wp_subpose.poses[n].orientation.z;
-
-    wp_posearray.poses.push_back(wp_pose);
-
-    ///////////////////////////////////////////
-    q_form yaw;
-    std::vector<q_form> angle_in;
-    yaw.w = wp_subpose.poses[n].orientation.w;
-    yaw.x = wp_subpose.poses[n].orientation.x;
-    yaw.y = wp_subpose.poses[n].orientation.y;
-    yaw.z = wp_subpose.poses[n].orientation.z;
-
-    // yaw.w = 1;
-    // yaw.x = 1;
-    // yaw.y = 1;
-    // yaw.z = 1;  
-    angle_in.push_back(yaw);  
-    float heading = yaw_to_q(angle_in);
-
-    float xf;
-    float yf;
-    float zf;
-    float x;
-    float y;
-    float z;
-
-    if (heading > -(M_PI / 2) && heading < (M_PI / 2))
-    {
-      x = sin(abs(heading)) * xoff;
-      y = cos(abs(heading)) * xoff;
-    }
-    else
-    {
-      x = cos((abs(heading) - (M_PI / 2))) * xoff;
-      y = sin((abs(heading) - (M_PI / 2))) * xoff;
-    }
-
-    if (heading > 0 && heading < M_PI)
-    {
-      xf = wp_subpose.poses[n].position.x - x;
-    }
-    else
-    {
-      xf = wp_subpose.poses[n].position.x + x;
-    }
-
-    //For y-axis sign, where first and fourth quadrant is negative
-    if (heading > -(M_PI / 2) && heading < (M_PI / 2))
-    {
-      yf = wp_subpose.poses[n].position.y + y;
-    }
-    else
-    {
-      yf = wp_subpose.poses[n].position.y - y;
-    }
-    wp_pose1.position.x = xf;
-    wp_pose1.position.y = yf;
-    wp_pose1.position.z = zf;
-
-    wp_pose1.orientation.w = wp_subpose.poses[n].orientation.w;
-    wp_pose1.orientation.x = wp_subpose.poses[n].orientation.x;
-    wp_pose1.orientation.y = wp_subpose.poses[n].orientation.y;
-    wp_pose1.orientation.z = wp_subpose.poses[n].orientation.z;
-
-    wp_posearray1.poses.push_back(wp_pose1);
-
-    // ROS_INFO("x: %f",wp_subpose.poses[2].position.x);
+  for (int n = 1; n < drone_count)
+  {
+    f
   }
-  wp_pub.publish(wp_posearray);
-  wp_pub1.publish(wp_posearray1);
-  // ROS_INFO("Last Form WP x:%f y:%f z:%f",wp_pose.position.x,wp_pose.position.y,wp_pose.position.z);
+
 }
 
 int main(int argc, char **argv)
@@ -116,7 +56,7 @@ int main(int argc, char **argv)
   ros::NodeHandle k;
 
   wp_sub = k.subscribe<geometry_msgs::Pose>("/gnc/goal", 10, nav_wp);
-  wp_pub = k.advertise<geometry_msgs::PoseArray>("/gnc/form", 2);
+  wp_pub = k.advertise<geometry_msgs::PoseStamped>("/gnc/form", 2);
 
   ros::Rate loop_rate(0.3);
   while (ros::ok())
