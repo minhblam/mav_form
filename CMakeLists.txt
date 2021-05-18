@@ -200,14 +200,20 @@ include_directories(
 
 # Mission Logic
 
-add_executable(nav_manager src/nav_manager.cpp)
-target_link_libraries(nav_manager ${catkin_LIBRARIES})
+# add_executable(nav_manager src/nav_manager.cpp)
+# target_link_libraries(nav_manager ${catkin_LIBRARIES})
 
-add_executable(form_manager src/form_manager.cpp)
-target_link_libraries(form_manager ${catkin_LIBRARIES})
+# add_executable(form_manager src/form_manager.cpp)
+# target_link_libraries(form_manager ${catkin_LIBRARIES})
 
-add_executable(traj_manager src/traj_manager.cpp)
-target_link_libraries(traj_manager ${catkin_LIBRARIES})
+# add_executable(traj_manager src/traj_manager.cpp)
+# target_link_libraries(traj_manager ${catkin_LIBRARIES})
+
+add_executable(drone_follow src/drone_follow.cpp)
+target_link_libraries(drone_follow ${catkin_LIBRARIES})
+
+add_executable(drone_lead src/drone_lead.cpp)
+target_link_libraries(drone_lead ${catkin_LIBRARIES})
 
 # add_executable(follower src/follower.cpp)
 # target_link_libraries(follower ${catkin_LIBRARIES})

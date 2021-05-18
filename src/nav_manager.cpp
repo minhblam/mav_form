@@ -85,12 +85,6 @@ std::vector<gnc_wppose> mod_wp(std::vector<gnc_WP> wp_in)
 }
 
 
-
-
-
-
-
-
 void push_wp(std::vector<gnc_wppose> wp_in, int n)
 {
 	// int size_wp = func_wplist().size();
