@@ -273,16 +273,15 @@ int land()
 }
 
 
-/*      Establish Connection
+/*      Establish Connections
 */
 
 
-int init_leader_subscriber()
+int init_leader_subscriber(ros::NodeHandle controlnode)
 {
-  ros::NodeHandle controlnode;
-  lead_pose_sub = controlnode.subscribe<nav_msgs::Odometry>("drone1/mavros/global_position/local", 10, lead_pose_cb);// add unique callback
-  lead_twist_sub = controlnode.subscribe<geometry_msgs::TwistStamped>("drone1/mavros/global_position/gp_vel", 10, lead_vel_cb);
-
+  lead_pose_sub = controlnode.subscribe<nav_msgs::Odometry>("/drone1/mavros/global_position/local", 10, lead_pose_cb);// add unique callback
+  lead_twist_sub = controlnode.subscribe<geometry_msgs::TwistStamped>("/drone1/mavros/global_position/gp_vel", 10, lead_vel_cb);
+  
   return 0;
 }
 

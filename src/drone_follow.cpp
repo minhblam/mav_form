@@ -10,16 +10,16 @@ gnc_error error_form(float xoff) //float yoff, float zoff
   float xf;
   float yf;
   float zf;
-  std::string ros_namespace;
+  std::string ros_number;
   ros::NodeHandle gnc_node;
-  if (!gnc_node.hasParam("namespace"))
+  if (!gnc_node.hasParam("number"))
   {
-    ROS_INFO("Using default namespace");
+    ROS_INFO("Drone No. fix failed");
   }else{
-    gnc_node.getParam("namespace",ros_namespace);
-    ROS_INFO("Using namespace %s",ros_namespace.c_str());
+    gnc_node.getParam("number",ros_number);
+    ROS_INFO("Drone No.%s fix successful",ros_number.c_str());
   }
-  int namespace_int = atoi(ros_namespace.c_str()); //get drone number as integer
+  int namespace_int = stoi(ros_number.c_str()); //get drone number as integer
 
   if (lpsi < M_PI/2 && lpsi > -M_PI/2){
     x = cos(abs(lpsi))*(xoff*((namespace_int-1)/2));
@@ -62,14 +62,8 @@ gnc_error error_form(float xoff) //float yoff, float zoff
   d_error.x = xf - d_pose.pose.pose.position.x;
   d_error.y = yf - d_pose.pose.pose.position.y;
   d_error.z = zf - d_pose.pose.pose.position.z;
-
+  ROS_INFO("Drone No. %s formation error (%f,%f,%f)",ros_number.c_str(),d_error.x,d_error.y,d_error.z )
   return d_error;
-}
-
-void set_heading()
-{
-  float yaw_error = psi - lpsi;
-  cmd_twist.twist.angular.z = d_twist.twist.angular.z + yaw_error; //May need to change direction
 }
 
 void set_form(gnc_error d_error, float xoff)
@@ -77,12 +71,13 @@ void set_form(gnc_error d_error, float xoff)
   cmd_twist.twist.linear.x = d_twist.twist.linear.x + error_form(xoff).x;
   cmd_twist.twist.linear.x = d_twist.twist.linear.y + error_form(xoff).y;
   cmd_twist.twist.linear.x = d_twist.twist.linear.z + error_form(xoff).z;
-  set_heading();
+
+  float yaw_error = psi - lpsi;
+  cmd_twist.twist.angular.z = d_twist.twist.angular.z + yaw_error; //May need to change direction
+
   twist_pub.publish(cmd_twist);
+  ROS_INFO("Velocity inputs (%f,%f,%f)",cmd_twist.twist.linear.x,cmd_twist.twist.linear.y,cmd_twist.twist.linear.z)
 }
-
-
-
 
 int main(int argc, char **argv)
 {
@@ -90,7 +85,7 @@ int main(int argc, char **argv)
   ros::NodeHandle gnc_node("~");
 
   init_publisher_subscriber(gnc_node);
-  init_leader_subscriber();
+  init_leader_subscriber(gnc_node);
 
   wait4connect();
 
@@ -100,10 +95,11 @@ int main(int argc, char **argv)
 
   bool wp_nav = 1; //Change this to 0 when navigation is complete
 
-  ros::Rate loop_rate(2);
+  float xoff = 2;
+  ros::Rate loop_rate(5);
   while (ros::ok() && wp_nav)
   {
-    set_form(error_form(2),2);
+    set_form(error_form(xoff),xoff);
     ros::spin();
     loop_rate.sleep();
   }
