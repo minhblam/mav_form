@@ -10,73 +10,83 @@ gnc_error error_form(float xoff) //float yoff, float zoff
   float xf;
   float yf;
   float zf;
-  std::string ros_number;
-  ros::NodeHandle gnc_node;
-  if (!gnc_node.hasParam("number"))
-  {
-    ROS_INFO("Drone No. fix failed");
-  }else{
-    gnc_node.getParam("number",ros_number);
-    ROS_INFO("Drone No.%s fix successful",ros_number.c_str());
-  }
-  int namespace_int = stoi(ros_number.c_str()); //get drone number as integer
+  gnc_error d_error;
+  ros::NodeHandle gnc_node("~");
+  int number_int = ros_inumber(gnc_node);
+  float number_float = ros_fnumber(gnc_node);
+  
+  
 
-  if (lpsi < M_PI/2 && lpsi > -M_PI/2){
-    x = cos(abs(lpsi))*(xoff*((namespace_int-1)/2));
-    y = sin(abs(lpsi))*(xoff*((namespace_int-1)/2));
+  if (l_heading < M_PI/2 && l_heading > -M_PI/2){
+    x = cos(abs(l_heading))*(xoff*((number_float-1)/2));
+    y = sin(abs(l_heading))*(xoff*((number_float-1)/2));
   }else{
-    x = sin(abs(lpsi))*(xoff*((namespace_int-1)/2));
-    y = cos(abs(lpsi))*(xoff*((namespace_int-1)/2));
+    x = sin(abs(l_heading))*(xoff*((number_float-1)/2));
+    y = cos(abs(l_heading))*(xoff*((number_float-1)/2));
   }
 
-  if(namespace_int & 1) //If odd number
+  if(number_int & 1) //If odd number
   {
-    if (lpsi < M_PI/2 && lpsi > -M_PI/2)
+    // ROS_INFO("Drone %i is an odd numbered drone",namespace_int);
+    if (l_heading < M_PI/2 && l_heading > -M_PI/2)
     {
       xf = lead_pose.pose.pose.position.x - x;
     }else{
       xf = lead_pose.pose.pose.position.x + x;
     }
-    if (lpsi > 0 && lpsi <M_PI)
+    if (l_heading > 0 && l_heading <M_PI)
     {
       yf = lead_pose.pose.pose.position.y - y;
     }else{
       yf = lead_pose.pose.pose.position.y + y;
     }
   }else{ //If even number
-    if (lpsi < M_PI/2 && lpsi > -M_PI/2)
+  // ROS_INFO("Drone %i is an odd numbered drone",namespace_int);
+    if (l_heading < M_PI/2 && l_heading > -M_PI/2)
     {
       xf = lead_pose.pose.pose.position.x + x;
     }else{
       xf = lead_pose.pose.pose.position.x - x;
     }
-    if (lpsi > 0 && lpsi <M_PI)
+    if (l_heading > 0 && l_heading <M_PI)
     {
       yf = lead_pose.pose.pose.position.y + y;
     }else{
       yf = lead_pose.pose.pose.position.y - y;
     }
   }
+  zf = lead_pose.pose.pose.position.z;
 
-  gnc_error d_error;
   d_error.x = xf - d_pose.pose.pose.position.x;
   d_error.y = yf - d_pose.pose.pose.position.y;
   d_error.z = zf - d_pose.pose.pose.position.z;
-  ROS_INFO("Drone No. %s formation error (%f,%f,%f)",ros_number.c_str(),d_error.x,d_error.y,d_error.z )
+  
+  if (ros_inumber(gnc_node) == 2)
+  {
+    // ROS_INFO("Heading Desired z:%f Desired x:%f y:%f z:%f   Actual x:%f y:%f z:%f",l_heading,xf,yf,zf,d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_pose.pose.pose.position.z);
+    ROS_INFO("Offset x:%f y:%f Float Number is %f",x,y,number_float);
+    // ROS_INFO("Drone No. %i formation error (%f,%f,%f)",ros_inumber(gnc_node),d_error.x,d_error.y,d_error.z );
+  }
+  // ROS_INFO("Leader Heading %f",l_heading);
   return d_error;
 }
 
 void set_form(gnc_error d_error, float xoff)
 {
-  cmd_twist.twist.linear.x = d_twist.twist.linear.x + error_form(xoff).x;
-  cmd_twist.twist.linear.x = d_twist.twist.linear.y + error_form(xoff).y;
-  cmd_twist.twist.linear.x = d_twist.twist.linear.z + error_form(xoff).z;
+  ros::NodeHandle gnc_node("~");
+  cmd_twist.twist.linear.x = d_twist.twist.linear.x + error_form(xoff).x*0.5;
+  cmd_twist.twist.linear.y = d_twist.twist.linear.y + error_form(xoff).y*0.5;
+  cmd_twist.twist.linear.z = d_twist.twist.linear.z + error_form(xoff).z*0.5;
+  // ROS_INFO("Error x:%f y:%f z:%f",error_form(xoff).x,error_form(xoff).y,error_form(xoff).z);
 
-  float yaw_error = psi - lpsi;
-  cmd_twist.twist.angular.z = d_twist.twist.angular.z + yaw_error; //May need to change direction
+  float yaw_error = d_heading - l_heading; //error in radians
+  cmd_twist.twist.angular.z = d_twist.twist.angular.z + yaw_error*0.05; //May need to change direction
+  if (ros_inumber(gnc_node)==2){
+    ROS_INFO("Yaw Error: %f",yaw_error);
+  }
 
   twist_pub.publish(cmd_twist);
-  ROS_INFO("Velocity inputs (%f,%f,%f)",cmd_twist.twist.linear.x,cmd_twist.twist.linear.y,cmd_twist.twist.linear.z)
+  // ROS_INFO("Drone %i Velocity inputs (%f,%f,%f)",ros_number(gnc_node),cmd_twist.twist.linear.x,cmd_twist.twist.linear.y,cmd_twist.twist.linear.z);
 }
 
 int main(int argc, char **argv)
@@ -93,14 +103,14 @@ int main(int argc, char **argv)
 
   takeoff(3);
 
-  bool wp_nav = 1; //Change this to 0 when navigation is complete
+  // bool wp_nav = 1; //Change this to 0 when navigation is complete
 
-  float xoff = 2;
-  ros::Rate loop_rate(5);
-  while (ros::ok() && wp_nav)
+  float xoff = 1; //metres????
+  ros::Rate loop_rate(2);
+  while (ros::ok()) // && wp_nav
   {
     set_form(error_form(xoff),xoff);
-    ros::spin();
+    ros::spinOnce();
     loop_rate.sleep();
   }
   return 0;

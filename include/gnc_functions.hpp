@@ -51,19 +51,21 @@ ros::ServiceClient command_client;  //Primarily for Set Speed Command
 ros::ServiceClient land_client;
 
 float psi = 0;
+float d_heading;
 float lpsi = 0;
+float l_heading;
 
 /*      Control Functions
 */
 void pose_cb(const nav_msgs::Odometry::ConstPtr &msg)
 {
   d_pose = *msg;
-  float q0 = d_pose.pose.pose.orientation.w;
-  float q1 = d_pose.pose.pose.orientation.x;
-  float q2 = d_pose.pose.pose.orientation.y;
-  float q3 = d_pose.pose.pose.orientation.z;
-  float psi = atan2((2 * (q0 * q3 + q1 * q2)), (1 - 2 * (pow(q2, 2) + pow(q3, 2))));
-  // ROS_INFO("Follower Heading %f", psi*(180/M_PI));
+  float qw = d_pose.pose.pose.orientation.w;
+  float qx = d_pose.pose.pose.orientation.x;
+  float qy = d_pose.pose.pose.orientation.y;
+  float qz = d_pose.pose.pose.orientation.z;
+  float psi = atan2(2 * (qw * qz + qx * qy) , 1 - 2 * (qy * qy + qz * qz) );
+  d_heading = psi;
 }
 
 void state_cb(const mavros_msgs::State::ConstPtr &msg)
@@ -79,12 +81,13 @@ void vel_cb(const geometry_msgs::TwistStamped::ConstPtr &msg)
 void lead_pose_cb(const nav_msgs::Odometry::ConstPtr &msg)
 {
   lead_pose = *msg;
-  float q0 = lead_pose.pose.pose.orientation.w;
-  float q1 = lead_pose.pose.pose.orientation.x;
-  float q2 = lead_pose.pose.pose.orientation.y;
-  float q3 = lead_pose.pose.pose.orientation.z;
-  float lpsi = atan2((2 * (q0 * q3 + q1 * q2)), (1 - 2 * (pow(q2, 2) + pow(q3, 2))));
-  // ROS_INFO("Follower Heading %f", psi*(180/M_PI));
+  float qw = lead_pose.pose.pose.orientation.w;
+  float qx = lead_pose.pose.pose.orientation.x;
+  float qy = lead_pose.pose.pose.orientation.y;
+  float qz = lead_pose.pose.pose.orientation.z;
+  float lpsi = atan2(2 * (qw * qz + qx * qy) , 1 - 2 * (qy * qy + qz * qz) );
+  l_heading = lpsi;
+  // ROS_INFO("Lead Heading %f", lpsi*(180/M_PI));
 }
 void lead_vel_cb(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
@@ -108,13 +111,13 @@ struct gnc_error
   float z;   // distance in z with respect to your reference frame
 };
 
-struct q_form
-{
-  float w;
-  float x;
-  float y;
-  float z;
-};
+// struct q_form
+// {
+//   float w;
+//   float x;
+//   float y;
+//   float z;
+// };
 
 struct gnc_wppose
 {
@@ -126,38 +129,6 @@ struct gnc_wppose
   float qy;  // quaternion in y
   float qz;  // quaternion in z
 };
-
-// std::vector<q_form> yaw_to_q(float yaw) // In radians
-// {
-//   q_form angle;
-//   float pitch = 0;
-//   float roll = 0;
-
-//   float cy = cos(yaw * 0.5);
-//   float sy = sin(yaw * 0.5);
-//   float cr = cos(roll * 0.5);
-//   float sr = sin(roll * 0.5);
-//   float cp = cos(pitch * 0.5);
-//   float sp = sin(pitch * 0.5);
-
-//   float qw = cy * cr * cp + sy * sr * sp;
-//   float qx = cy * sr * cp - sy * cr * sp;
-//   float qy = cy * cr * sp + sy * sr * cp;
-//   float qz = sy * cr * cp - cy * sr * sp;
-
-//   angle.w = qw;
-//   angle.x = qx;
-//   angle.y = qy;
-//   angle.z = qz; //Might need pushback stuff idk
-
-//   return angle;
-// }
-
-// float q_to_yaw (std::vector<q_form> q)
-// {
-//   float psi = atan2((2*(q[0].w*q[0].z + q[0].x*q[0].y)), (1 - 2*(pow(q[0].y,2) + pow(q[0].z,2))) );
-//   return psi;
-// }
 
 /*      Preflight Functions
 */
@@ -275,6 +246,34 @@ int land()
 
 /*      Establish Connections
 */
+
+int ros_inumber(ros::NodeHandle controlnode)
+{
+  int ros_number;
+	if (!controlnode.hasParam("number"))
+	{
+
+		// ROS_INFO("using default namespace");
+	}else{
+		controlnode.getParam("number", ros_number);
+		// ROS_INFO("using namespace %s", ros_namespace.c_str());
+	}
+  return ros_number;
+}
+
+float ros_fnumber(ros::NodeHandle controlnode)
+{
+  float ros_number;
+	if (!controlnode.hasParam("number"))
+	{
+
+		// ROS_INFO("using default namespace");
+	}else{
+		controlnode.getParam("number", ros_number);
+		// ROS_INFO("using namespace %s", ros_namespace.c_str());
+	}
+  return ros_number;
+}
 
 
 int init_leader_subscriber(ros::NodeHandle controlnode)

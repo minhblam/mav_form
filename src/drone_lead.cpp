@@ -12,46 +12,46 @@ std::vector<gnc_WP> wp_in;
 
 std::vector<gnc_WP> func_wplist() //Create a separate function for a list of waypoints
 {
-	// std::vector<gnc_WP> wp_in;
-	gnc_WP wp_list;
-	wp_list.x = 0; //update this to 0,1
-	wp_list.y = 0;
-	wp_list.z = 2;
-	wp_in.push_back(wp_list);
-	wp_list.x = 3; //1
-	wp_list.y = 1;
-	wp_list.z = 2;
-	wp_in.push_back(wp_list);
-	wp_list.x = 9; //2
-	wp_list.y = 3;
-	wp_list.z = 2;
-	wp_in.push_back(wp_list);
-	wp_list.x = 9; //3
-	wp_list.y = 5;
-	wp_list.z = 2;
-	wp_in.push_back(wp_list);
-	wp_list.x = 9; //4
-	wp_list.y = 7;
-	wp_list.z = 2;
-	wp_in.push_back(wp_list);
-	wp_list.x = 5; //5
-	wp_list.y = 9;
-	wp_list.z = 2;
-	wp_in.push_back(wp_list);
-	return wp_in;
+  // std::vector<gnc_WP> wp_in;
+  gnc_WP wp_list;
+  wp_list.x = 0; //update this to 0,1
+  wp_list.y = 0;
+  wp_list.z = 2;
+  wp_in.push_back(wp_list);
+  wp_list.x = 3; //1
+  wp_list.y = 1;
+  wp_list.z = 2;
+  wp_in.push_back(wp_list);
+  wp_list.x = 9; //2
+  wp_list.y = 3;
+  wp_list.z = 2;
+  wp_in.push_back(wp_list);
+  wp_list.x = 9; //3
+  wp_list.y = 5;
+  wp_list.z = 2;
+  wp_in.push_back(wp_list);
+  wp_list.x = 9; //4
+  wp_list.y = 7;
+  wp_list.z = 2;
+  wp_in.push_back(wp_list);
+  wp_list.x = 5; //5
+  wp_list.y = 9;
+  wp_list.z = 2;
+  wp_in.push_back(wp_list);
+  return wp_in;
 }
 
 void move(float v_des, float lookahead) // std::vector<gnc_WP> wp_in
 {
   // wp_in = func_wplist();
   // rvwp_follow(lookahead, wp_in);                            //Yaw Control
-  float phi_path = atan2(wp_in[n].y - wp_in[n - 1].y, wp_in[n].x - wp_in[n - 1].x);                               //Angle of path, prev WP to current WP
+  float phi_path = atan2(wp_in[n].y - wp_in[n - 1].y, wp_in[n].x - wp_in[n - 1].x);                                 //Angle of path, prev WP to current WP
   float phi_vt = atan2(d_pose.pose.pose.position.y = wp_in[n - 1].y, d_pose.pose.pose.position.x = wp_in[n - 1].x); //Angle of car to previous WP (math reference)
 
-  float prevwp = sqrt(pow((d_pose.pose.pose.position.x - wp_in[n - 1].x), 2) + pow((d_pose.pose.pose.position.y - wp_in[n - 1].y),2)); //Distance to Previous waypoint
-  float trackwp = cos(phi_path - phi_vt) * prevwp;                                                                            //Distance of WP track completed
-  float lookdist = abs(sin(phi_path - phi_vt) * prevwp);                                                                      //Cross track error
-  float lookwp = sqrt(pow(lookahead, 2) + pow(lookdist,2));                                                                                //G
+  float prevwp = sqrt(pow((d_pose.pose.pose.position.x - wp_in[n - 1].x), 2) + pow((d_pose.pose.pose.position.y - wp_in[n - 1].y), 2)); //Distance to Previous waypoint
+  float trackwp = cos(phi_path - phi_vt) * prevwp;                                                                                      //Distance of WP track completed
+  float lookdist = abs(sin(phi_path - phi_vt) * prevwp);                                                                                //Cross track error
+  float lookwp = sqrt(pow(lookahead, 2) + pow(lookdist, 2));                                                                            //G
   float lookpath = trackwp + lookwp;
 
   //Set lookahead WP coordinates
@@ -102,23 +102,26 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(2);
   while (ros::ok())
   {
-    if (check_waypoint_reached(0.3) == 1)
-    {
-      ROS_INFO("Moving to Waypoint %f at (%f,%f,%f)",n,wp_in[n].x,wp_in[n].y,wp_in[n].z);
-      if (n < wp_in.size())
-      {
-        // set_destination(wp_in[n].x, wp_in[n].y, wp_in[n].z);
-        
-        move(3,0.2); //,wp_in
-        n++;
-      }
-      else
-      {
-        //land after all waypoints are reached
-        land();
-      }
-    }
-    ros::spin();
+    cmd_twist.twist.linear.z = 0.2; //ms-1 or what?
+    cmd_twist.twist.angular.z = 0.1;
+    twist_pub.publish(cmd_twist);
+    // if (check_waypoint_reached(0.3) == 1)
+    // {
+    //   ROS_INFO("Moving to Waypoint %i at (%f,%f,%f)",n,wp_in[n].x,wp_in[n].y,wp_in[n].z);
+    //   if (n < wp_in.size())
+    //   {
+    //     // set_destination(wp_in[n].x, wp_in[n].y, wp_in[n].z);
+
+    //     move(3,0.2); //,wp_in
+    //     n++;
+    //   }
+    //   else
+    //   {
+    //     //land after all waypoints are reached
+    //     land();
+    //   }
+    // }
+    ros::spinOnce();
     loop_rate.sleep();
   }
   return 0;
