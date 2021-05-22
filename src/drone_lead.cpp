@@ -103,7 +103,7 @@ int main(int argc, char **argv)
   while (ros::ok())
   {
     cmd_twist.twist.linear.z = 0.2; //ms-1 or what?
-    cmd_twist.twist.angular.z = 0.1;
+    // cmd_twist.twist.angular.z = 0.1;
     twist_pub.publish(cmd_twist);
     // if (check_waypoint_reached(0.3) == 1)
     // {

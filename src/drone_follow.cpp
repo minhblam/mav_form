@@ -64,7 +64,7 @@ gnc_error error_form(float xoff) //float yoff, float zoff
   if (ros_inumber(gnc_node) == 2)
   {
     // ROS_INFO("Heading Desired z:%f Desired x:%f y:%f z:%f   Actual x:%f y:%f z:%f",l_heading,xf,yf,zf,d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_pose.pose.pose.position.z);
-    ROS_INFO("Offset x:%f y:%f Float Number is %f",x,y,number_float);
+    ROS_INFO("OFFSET l_heading:%f xoff: %f n_f: %f is x_off: %f and y_off: %f    L_POS lx: %f ly: %f    DESIRED xf: %f yf: %f   D_POS x: %f y: %f   ERROR: xe: %f ye: %f",l_heading,xoff,number_float,x,y,lead_pose.pose.pose.position.x,lead_pose.pose.pose.position.y,xf,yf,d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_error.x,d_error.y);
     // ROS_INFO("Drone No. %i formation error (%f,%f,%f)",ros_inumber(gnc_node),d_error.x,d_error.y,d_error.z );
   }
   // ROS_INFO("Leader Heading %f",l_heading);
@@ -80,7 +80,8 @@ void set_form(gnc_error d_error, float xoff)
   // ROS_INFO("Error x:%f y:%f z:%f",error_form(xoff).x,error_form(xoff).y,error_form(xoff).z);
 
   float yaw_error = d_heading - l_heading; //error in radians
-  cmd_twist.twist.angular.z = d_twist.twist.angular.z + yaw_error*0.05; //May need to change direction
+  // cmd_twist.twist.angular.z = d_twist.twist.angular.z + yaw_error*0.05; //May need to change direction
+  cmd_twist.twist.angular.z = 0.2; //positive is left
   if (ros_inumber(gnc_node)==2){
     ROS_INFO("Yaw Error: %f",yaw_error);
   }
