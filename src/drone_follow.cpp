@@ -10,25 +10,27 @@ gnc_error error_form(float xoff) //float yoff, float zoff
   float xf;
   float yf;
   float zf;
+  float x_offset;
   gnc_error d_error;
   ros::NodeHandle gnc_node("~");
   int number_int = ros_inumber(gnc_node);
   float number_float = ros_fnumber(gnc_node);
   
-  
-
-  if (l_heading < M_PI/2 && l_heading > -M_PI/2){
-    x = cos(abs(l_heading))*(xoff*((number_float-1)/2));
-    y = sin(abs(l_heading))*(xoff*((number_float-1)/2));
+  if(number_int & 1)
+  {
+    x_off = xoff*number_float/2;
   }else{
-    x = sin(abs(l_heading))*(xoff*((number_float-1)/2));
-    y = cos(abs(l_heading))*(xoff*((number_float-1)/2));
+    x_off = xoff*(number_float-1)/2;
   }
+
+  x = abs(cos(l_heading)*x_off);
+  y = abs(sin(l_heading)*x_off);
+
 
   if(number_int & 1) //If odd number
   {
     // ROS_INFO("Drone %i is an odd numbered drone",namespace_int);
-    if (l_heading < M_PI/2 && l_heading > -M_PI/2)
+    if (l_heading > -M_PI/2 && l_heading < M_PI/2)
     {
       xf = lead_pose.pose.pose.position.x - x;
     }else{
