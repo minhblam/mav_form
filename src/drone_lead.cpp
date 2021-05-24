@@ -45,6 +45,7 @@ void move(float v_des, float lookahead) // std::vector<gnc_WP> wp_in
 {
   // wp_in = func_wplist();
   // rvwp_follow(lookahead, wp_in);                            //Yaw Control
+  ROS_INFO("phi_path is %f",phi_path);
   float phi_path = atan2(wp_in[n].y - wp_in[n - 1].y, wp_in[n].x - wp_in[n - 1].x);                                 //Angle of path, prev WP to current WP
   float phi_vt = atan2(d_pose.pose.pose.position.y = wp_in[n - 1].y, d_pose.pose.pose.position.x = wp_in[n - 1].x); //Angle of car to previous WP (math reference)
 
@@ -59,6 +60,7 @@ void move(float v_des, float lookahead) // std::vector<gnc_WP> wp_in
   float xi = (cos(phi_path) * lookpath) + wp_in[n - 1].x;
 
   float turn_rate = atan2(yi - d_pose.pose.pose.position.y, xi - d_pose.pose.pose.position.x); //point at lookahead WP. Add gain here, check signs.
+
   d_twist.twist.angular.z = turn_rate;
   cmd_twist.twist.linear.x = cos(psi) * v_des; //X Axis control based on heading (To simulate moving forward)
   cmd_twist.twist.linear.y = sin(psi) * v_des; //Y Axis control based on heading (To simulate moving forward)
@@ -67,7 +69,7 @@ void move(float v_des, float lookahead) // std::vector<gnc_WP> wp_in
   twist_pub.publish(cmd_twist);
 }
 
-int check_waypoint_reached(float pos_tolerance = 0.3) //const std::vector<gnc_WP> wp_in = {}
+bool check_waypoint_reached(float pos_tolerance = 0.3) //const std::vector<gnc_WP> wp_in = {}
 {
   //check for correct position
   float deltaX = abs(wp_in[n].x - d_pose.pose.pose.position.x);
@@ -90,6 +92,8 @@ int main(int argc, char **argv)
 
   ros::init(argc, argv, "gnc_node");
   ros::NodeHandle gnc_node("~");
+  wp_in = func_wplist();
+  ROS_INFO("First WP: %f,%f   Second WP: %f,%f",wp_in[0].x,wp_in[0].y, wp_in[1].x,wp_in[1].y);
 
   init_publisher_subscriber(gnc_node);
   // wp_sub = gnc_node.subscribe<geometry_msgs::Pose>("/gnc/goal", 10, nav_wp);
@@ -102,10 +106,24 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(2);
   while (ros::ok())
   {
-    cmd_twist.twist.linear.z = 0.2; //ms-1 or what?
-    // cmd_twist.twist.angular.z = 0.1;
-    twist_pub.publish(cmd_twist);
-    // if (check_waypoint_reached(0.3) == 1)
+    ROS_INFO("Started Waypoint Navigation")
+    // cmd_twist.twist.linear.z = 0.2; //ms-1 or what?
+    // // cmd_twist.twist.angular.z = 0.1;
+    // twist_pub.publish(cmd_twist);
+
+    if (n < wp_in.size())
+    {
+      move(0.3,0.2);
+      if (check_waypoint_reached(0.3))
+      {
+        n++;
+      }
+    }else{
+      land();
+    }
+
+
+    // if (check_waypoint_reached(0.3))
     // {
     //   ROS_INFO("Moving to Waypoint %i at (%f,%f,%f)",n,wp_in[n].x,wp_in[n].y,wp_in[n].z);
     //   if (n < wp_in.size())
@@ -121,6 +139,7 @@ int main(int argc, char **argv)
     //     land();
     //   }
     // }
+
     ros::spinOnce();
     loop_rate.sleep();
   }
