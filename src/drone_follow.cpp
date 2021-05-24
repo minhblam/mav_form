@@ -10,15 +10,15 @@ gnc_error error_form(float xoff) //float yoff, float zoff
   float xf;
   float yf;
   float zf;
-  float x_offset;
+  float x_off;
   gnc_error d_error;
   ros::NodeHandle gnc_node("~");
   int number_int = ros_inumber(gnc_node);
   float number_float = ros_fnumber(gnc_node);
   
-  if(number_int & 1)
+  if(number_int & 1) //If odd number
   {
-    x_off = xoff*number_float/2;
+    x_off = xoff*(number_float/2);
   }else{
     x_off = xoff*(number_float-1)/2;
   }
@@ -76,16 +76,16 @@ gnc_error error_form(float xoff) //float yoff, float zoff
 void set_form(gnc_error d_error, float xoff)
 {
   ros::NodeHandle gnc_node("~");
-  cmd_twist.twist.linear.x = d_twist.twist.linear.x + error_form(xoff).x*0.5;
-  cmd_twist.twist.linear.y = d_twist.twist.linear.y + error_form(xoff).y*0.5;
-  cmd_twist.twist.linear.z = d_twist.twist.linear.z + error_form(xoff).z*0.5;
+  cmd_twist.twist.linear.x = d_twist.twist.linear.x + error_form(xoff).x*0.6;
+  cmd_twist.twist.linear.y = d_twist.twist.linear.y + error_form(xoff).y*0.6;
+  cmd_twist.twist.linear.z = d_twist.twist.linear.z + error_form(xoff).z*0.6;
   // ROS_INFO("Error x:%f y:%f z:%f",error_form(xoff).x,error_form(xoff).y,error_form(xoff).z);
 
   float yaw_error = d_heading - l_heading; //error in radians
-  // cmd_twist.twist.angular.z = d_twist.twist.angular.z + yaw_error*0.05; //May need to change direction
-  cmd_twist.twist.angular.z = 0.2; //positive is left
+  cmd_twist.twist.angular.z = d_twist.twist.angular.z - yaw_error*0.3; //May need to change direction
+  // cmd_twist.twist.angular.z = 0.2; //positive is left
   if (ros_inumber(gnc_node)==2){
-    ROS_INFO("Yaw Error: %f",yaw_error);
+    // ROS_INFO("Yaw Error: %f",yaw_error);
   }
 
   twist_pub.publish(cmd_twist);
@@ -108,8 +108,8 @@ int main(int argc, char **argv)
 
   // bool wp_nav = 1; //Change this to 0 when navigation is complete
 
-  float xoff = 1; //metres????
-  ros::Rate loop_rate(2);
+  float xoff = 2; //metres????
+  ros::Rate loop_rate(3);
   while (ros::ok()) // && wp_nav
   {
     set_form(error_form(xoff),xoff);
