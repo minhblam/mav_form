@@ -2,10 +2,47 @@
 // Manages direct control of drones. This includes connection of telemetry and control of all drones and receives pathplanning commands from the formation manager.
 #include <gnc_functions.hpp>
 
+#include <geometry_msgs/Point.h>
+ros::Subscriber error_sub;
+
 // void nav_cb(const geometry_msgs::Pose::ConstPtr &msg)
 // {
 //   wp_subpose = *msg;
 // }
+
+void error_cb (const geometry_msgs::Point::ConstPrt &msg)
+{
+  geometry_msgs::Point error_point;
+  error_point = *msg;
+  std::vector<gnc_error> error_in;
+  gnc_error error_group;
+  float sum_error;
+
+  error_group = error_point;
+  // The idea is to have the vector set to the last 3 values
+  if (error_in.size() < (ros_inumber-1))
+  {
+    error_in.push_back(error_group);
+  }else{
+    error_in.erase(error_in.begin(), error_in.begin()+1);
+  }
+
+  //May need to initialise a value??
+  float sum; 
+  float sum1;
+  float sum2;
+  sum = 0;
+  for (int k = 0; k<error_in.size(); k++)
+  {
+    sum = sum + error_in[i].x;
+    sum1 = sum1 + error_in[i].y;
+    sum1 = sum1 + error_in[i].z;
+  }
+  float avg_error = (sum+sum1+sum2)/(error_in.size()*3);
+  ROS_INFO("Average formation of %f",avg_error);
+  //Something to average in x,y,z of error_in vector
+  //Do some kinda of loop to create an average error for both subscribed error messages
+}
 
 int n = 1;
 std::vector<gnc_WP> wp_in;
@@ -63,6 +100,7 @@ void move(float v_des, float lookahead) // std::vector<gnc_WP> wp_in
   float thetai = atan2(xi - d_pose.pose.pose.position.x , yi - d_pose.pose.pose.position.y); //Angle to lookahead waypoint
   float thetae = psi - thetai;
 
+  //Do something to v_des to reduce speed if error gets too high by using form_e(error_point)
 
   cmd_twist.twist.angular.z = thetae;
   // cmd_twist.twist.angular.z = 0.2; //positive is left
@@ -103,6 +141,7 @@ int main(int argc, char **argv)
   int wp_size;
 
   init_publisher_subscriber(gnc_node);
+  error_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/pos_error",10, error_cb);
   // wp_sub = gnc_node.subscribe<geometry_msgs::Pose>("/gnc/goal", 10, nav_wp);
   // bool_pub = gnc_node.advertise<std_msgs::Bool>("/gnc/wpreach", 10);
   wp_size = wp_in.size();

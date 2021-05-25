@@ -2,6 +2,11 @@
 // Manages direct control of drones. This includes connection of telemetry and control of all drones and receives pathplanning commands from the formation manager.
 #include <gnc_functions.hpp>
 
+#include <geometry_msgs/Point.h>
+ros::Publisher error_pub;
+geometry_msgs::Point error_point;
+
+
 gnc_error error_form(float xoff) //float yoff, float zoff
 {
   float x;
@@ -92,6 +97,14 @@ void set_form(gnc_error d_error, float xoff)
   // ROS_INFO("Drone %i Velocity inputs (%f,%f,%f)",ros_number(gnc_node),cmd_twist.twist.linear.x,cmd_twist.twist.linear.y,cmd_twist.twist.linear.z);
 }
 
+void publish_error (gnc_error error)
+{
+  error_point.x = error.x;
+  error_point.y = error.y;
+  error_point.y = error.z;
+  error_pub.publish(error_point);
+}
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "gnc_node");
@@ -99,6 +112,8 @@ int main(int argc, char **argv)
 
   init_publisher_subscriber(gnc_node);
   init_leader_subscriber(gnc_node);
+
+  error_pub = gnc_node.advertise<geometry_msgs::Point>("/gnc/pos_error",10);
 
   wait4connect();
 
@@ -113,6 +128,7 @@ int main(int argc, char **argv)
   while (ros::ok()) // && wp_nav
   {
     set_form(error_form(xoff),xoff);
+    publish_error(error_form);
     ros::spinOnce();
     loop_rate.sleep();
   }
