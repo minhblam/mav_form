@@ -60,9 +60,11 @@ void move(float v_des, float lookahead) // std::vector<gnc_WP> wp_in
   // float angle_to_wp = atan2(wp_in[n].y-d_pose.pose.position.y, wp_in[n].x-d_pose.pose.position.x);
   // float heading_error = angle_to_wp - psi;
 
-  float turn_rate = atan2(yi - d_pose.pose.pose.position.y, xi - d_pose.pose.pose.position.x); //point at lookahead WP. Add gain here, check signs.
+  float thetai = atan2(xi - d_pose.pose.pose.position.x , yi - d_pose.pose.pose.position.y); //Angle to lookahead waypoint
+  float thetae = psi - thetai;
 
-  cmd_twist.twist.angular.z = turn_rate;
+
+  cmd_twist.twist.angular.z = thetae;
   // cmd_twist.twist.angular.z = 0.2; //positive is left
   cmd_twist.twist.linear.x = cos(psi) * v_des; //X Axis control based on heading (To simulate moving forward)
   cmd_twist.twist.linear.y = sin(psi) * v_des; //Y Axis control based on heading (To simulate moving forward)
