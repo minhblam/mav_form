@@ -23,9 +23,9 @@ gnc_error error_form(float xoff) //float yoff, float zoff
   
   if(number_int & 1) //If odd number
   {
-    x_off = xoff*(number_float/2);
-  }else{
     x_off = xoff*(number_float-1)/2;
+  }else{
+    x_off = xoff*(number_float/2);
   }
 
   x = abs(cos(l_heading)*x_off);
@@ -67,13 +67,14 @@ gnc_error error_form(float xoff) //float yoff, float zoff
   d_error.x = xf - d_pose.pose.pose.position.x;
   d_error.y = yf - d_pose.pose.pose.position.y;
   d_error.z = zf - d_pose.pose.pose.position.z;
+  ROS_INFO("OFFSET head:%.3f space: %.1f Drone %.1f    x_off: %.2f and y_off: %.2f     L_POS lx: %.2f ly: %.2f     DES xf: %.2f yf: %.2f    D_POS x: %.2f y: %.2f    ERR: xe: %.2f ye: %.2f",l_heading,x_off,number_float,x,y,lead_pose.pose.pose.position.x,lead_pose.pose.pose.position.y,xf,yf,d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_error.x,d_error.y);
   
-  if (ros_inumber(gnc_node) == 2)
-  {
-    // ROS_INFO("Heading Desired z:%f Desired x:%f y:%f z:%f   Actual x:%f y:%f z:%f",l_heading,xf,yf,zf,d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_pose.pose.pose.position.z);
-    ROS_INFO("OFFSET l_heading:%f xoff: %f n_f: %f is x_off: %f and y_off: %f    L_POS lx: %f ly: %f    DESIRED xf: %f yf: %f   D_POS x: %f y: %f   ERROR: xe: %f ye: %f",l_heading,xoff,number_float,x,y,lead_pose.pose.pose.position.x,lead_pose.pose.pose.position.y,xf,yf,d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_error.x,d_error.y);
-    // ROS_INFO("Drone No. %i formation error (%f,%f,%f)",ros_inumber(gnc_node),d_error.x,d_error.y,d_error.z );
-  }
+  // if (ros_inumber(gnc_node) == 2)
+  // {
+  //   // ROS_INFO("Heading Desired z:%f Desired x:%f y:%f z:%f   Actual x:%f y:%f z:%f",l_heading,xf,yf,zf,d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_pose.pose.pose.position.z);
+  //   // 
+  //   // ROS_INFO("Drone No. %i formation error (%f,%f,%f)",ros_inumber(gnc_node),d_error.x,d_error.y,d_error.z );
+  // }
   // ROS_INFO("Leader Heading %f",l_heading);
   return d_error;
 }
@@ -128,7 +129,7 @@ int main(int argc, char **argv)
   while (ros::ok()) // && wp_nav
   {
     set_form(error_form(xoff),xoff);
-    publish_error(error_form);
+    publish_error(error_form(xoff));
     ros::spinOnce();
     loop_rate.sleep();
   }
