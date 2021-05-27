@@ -134,6 +134,30 @@ bool check_waypoint_reached(float pos_tolerance = 0.3) //const std::vector<gnc_W
   }
 }
 
+void forward (float v_des) //Needs to add error from formation to slow speed as required
+{
+  float vy;
+  float vx;
+  ROS_INFO("x:%.2f y:%2.f heading: %.2f",cmd_twist.twist.linear.x,cmd_twist.twist.linear.y, d_heading );
+  if (d_heading > -M_PI/2 && d_heading < M_PI/2)
+    {
+      vy = abs(cos(d_heading))*v_des;
+      vx = abs(sin(d_heading))*v_des;
+      cmd_twist.twist.linear.x = vx;
+    }else{
+      vy = abs(cos(d_heading-M_PI/2))*v_des;
+      vx = abs(sin(d_heading-M_PI/2))*v_des;
+      cmd_twist.twist.linear.x = -vx;
+    }
+    if (d_heading > 0 && d_heading <M_PI)
+    {
+      cmd_twist.twist.linear.y = vy;
+    }else{
+      cmd_twist.twist.linear.y = -vy;
+    }
+  
+}
+
 int main(int argc, char **argv)
 {
 
@@ -154,11 +178,11 @@ int main(int argc, char **argv)
   takeoff(3);
   ROS_INFO("Started waypoint navigation with %i waypoints", wp_size);
   ros::Rate loop_rate(2);
-  ros::Duration(2.0).sleep();
+  ros::Duration(4.0).sleep();
   while (ros::ok())
   {
-    cmd_twist.twist.linear.x = 0.3;
-
+    cmd_twist.twist.angular.z = 0.1;
+    forward(0.5);
     twist_pub.publish(cmd_twist);
     // ROS_INFO("First Waypoint x:%f y:%f z:%f", wp_in[n].x, wp_in[n].y, wp_in[n].z);
 
