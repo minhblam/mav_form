@@ -104,7 +104,7 @@ void forward (float v_des) //Needs to add error from formation to slow speed as 
       cmd_twist.twist.linear.y = -vy;
     }
 
-  ROS_INFO("vx:%.2f vy:%.2f x:%.2f y:%.2f heading: %.2f",vx,vy,cmd_twist.twist.linear.x,cmd_twist.twist.linear.y, d_heading );
+  // ROS_INFO("vx:%.2f vy:%.2f x:%.2f y:%.2f heading: %.2f",vx,vy,cmd_twist.twist.linear.x,cmd_twist.twist.linear.y, d_heading );
 }
 
 void move(float v_des, float lookahead)
@@ -162,8 +162,8 @@ void move(float v_des, float lookahead)
 
   cmd_twist.twist.linear.z = d_twist.twist.linear.z + (wp_in[n].z - d_pose.pose.pose.position.z) * 0.5;
 
-  ROS_INFO("Turn Rate: %.2f Velocity x:%f y:%f z:%f",cmd_twist.twist.angular.z, d_twist.twist.linear.x,d_twist.twist.linear.y,d_twist.twist.linear.z);
-  // twist_pub.publish(cmd_twist);
+  
+  twist_pub.publish(cmd_twist);
 }
 
 bool check_waypoint_reached(float pos_tolerance = 0.3)
@@ -190,12 +190,12 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "gnc_node");
   ros::NodeHandle gnc_node("~");
   init_publisher_subscriber(gnc_node);
+  ros::Duration(10.0).sleep();
   
-  ROS_INFO("Position (%.2f,%.2f) Heading %.3f",d_pose.pose.pose.position.x, d_pose.pose.pose.position.y, d_heading);
   wp_in = func_wplist();
-  ROS_INFO("First WP: %f,%f   Second WP: %f,%f", wp_in[0].x, wp_in[0].y, wp_in[1].x, wp_in[1].y);
-  // int wp_size;
-  // wp_size = wp_in.size();
+  // ROS_INFO("First WP: %f,%f   Second WP: %f,%f", wp_in[0].x, wp_in[0].y, wp_in[1].x, wp_in[1].y);
+  int wp_size;
+  wp_size = wp_in.size();
   
   // error_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/pos_error",10, error_cb);
   // wp_sub = gnc_node.subscribe<geometry_msgs::Pose>("/gnc/goal", 10, nav_wp);
@@ -204,21 +204,29 @@ int main(int argc, char **argv)
 
   wait4connect();
   set_mode("GUIDED");
-  // takeoff(3);
-  // ROS_INFO("Started waypoint navigation with %i waypoints", wp_size);
-  ROS_INFO("First Waypoint x:%f y:%f z:%f", wp_in[n].x, wp_in[n].y, wp_in[n].z);
-  move(0.5, 0.3);
-  ros::Rate loop_rate(1);
   // ros::Duration(4.0).sleep();
+  takeoff(3);
+  ROS_INFO("%i waypoints, starting with Waypoint %i", wp_size, n);
+  ROS_INFO("Position (%.2f,%.2f) Heading %.3f",d_pose.pose.pose.position.x, d_pose.pose.pose.position.y, d_heading);
+  // ROS_INFO("First Waypoint x:%f y:%f z:%f", wp_in[n].x, wp_in[n].y, wp_in[n].z);
+  
+  ros::Rate loop_rate(3);
+  ros::Duration(4.0).sleep();
   while (ros::ok())
   {
+    // move(0.5, 0.3);
+    // ROS_INFO("Turn Rate: %.2f Velocity x:%f y:%f z:%f",cmd_twist.twist.angular.z, d_twist.twist.linear.x,d_twist.twist.linear.y,d_twist.twist.linear.z);
     
+
+    //Something in this loops makes the subscriber function VERY unhappy
 
     // while (n < wp_size)
     // {
-      
+    //   // ROS_INFO("Position (%.2f,%.2f) Heading %.3f",d_pose.pose.pose.position.x, d_pose.pose.pose.position.y, d_heading);
+    //   // move(0.5, 0.3);
     //   if (check_waypoint_reached(0.3))
     //   {
+    //     // ROS_INFO("Next Waypoint x:%f y:%f z:%f", wp_in[n].x, wp_in[n].y, wp_in[n].z);
     //     n++;
     //   }
     // }
