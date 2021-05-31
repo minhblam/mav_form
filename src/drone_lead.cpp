@@ -104,47 +104,57 @@ void forward (float v_des) //Needs to add error from formation to slow speed as 
       cmd_twist.twist.linear.y = -vy;
     }
 
-  // ROS_INFO("vx:%.2f vy:%.2f x:%.2f y:%.2f heading: %.2f",vx,vy,cmd_twist.twist.linear.x,cmd_twist.twist.linear.y, d_heading );
+  ROS_INFO("vx:%.2f vy:%.2f x:%.2f y:%.2f heading: %.2f",vx,vy,cmd_twist.twist.linear.x,cmd_twist.twist.linear.y, d_heading );
 }
 
 void move(float v_des, float lookahead)
 {
+  float phi_vt = atan2(d_pose.pose.pose.position.y - wp_in[n - 1].y, d_pose.pose.pose.position.x - wp_in[n - 1].x);                     //Angle of car to previous WP (math reference)  
   float phi_path = atan2(wp_in[n].y - wp_in[n - 1].y, wp_in[n].x - wp_in[n - 1].x);                                                     //Angle of path, prev WP to current WP
-  ROS_INFO("phi path : %.4f",phi_path);
+  float phi_inner = phi_path - phi_vt;
+  ROS_INFO("phi_inner : %.4f",phi_inner);
 
-  float phi_vt = atan2(d_pose.pose.pose.position.y - wp_in[n - 1].y, d_pose.pose.pose.position.x - wp_in[n - 1].x);                     //Angle of car to previous WP (math reference)
-  ROS_INFO("phi_vt : %.4f",phi_vt);
+  float prev_wp_dist = sqrt(  abs(pow((d_pose.pose.pose.position.x - wp_in[n - 1].x), 2)) + abs(pow((d_pose.pose.pose.position.y - wp_in[n - 1].y), 2))   ); //C - Distance to Previous waypoint
+  ROS_INFO("prev_wp_dist : %.4f   deltax: %.2f  deltay: %.2f",prev_wp_dist,d_pose.pose.pose.position.x , d_pose.pose.pose.position.y);
 
-  float prevwp = sqrt(pow((d_pose.pose.pose.position.x - wp_in[n - 1].x), 2) + pow((d_pose.pose.pose.position.y - wp_in[n - 1].y), 2)); //C - Distance to Previous waypoint
-  ROS_INFO("prevwp : %.4f",prevwp);
-
-  float trackwp = cos(phi_path - phi_vt) * prevwp;                                                                                      //B - Distance of WP track completed
+  float trackwp = cos(phi_inner) * prev_wp_dist;                                                                                      //B - Distance of WP track completed
   ROS_INFO("trackwp : %.4f",trackwp);
 
-  float cte = abs(sin(phi_path - phi_vt) * prevwp);                                                                                     //A - Cross track error
+  float cte = abs(sin(phi_inner) * prev_wp_dist);                                                                                     //A - Cross track error
   ROS_INFO("cte : %.4f",cte);
 
-  float lookwp = sqrt(pow(lookahead, 2) + pow(cte, 2));                                                                                 //G - Distance of completed track
-  ROS_INFO("lookwp : %.4f",lookwp);
+  float forwardtrack;                                                                                 //G - Distance of completed track
+  if (cte <= lookahead)
+  {
+    forwardtrack = sqrt( pow(lookahead,2) + pow(cte,2) );
+  }else{
+    forwardtrack = 0;
+  }
 
-  float lookpath = trackwp + lookwp;                                                                                                    //H - Distance from Previous Waypoint to lookahead waypoint
+   
+  float lookpath = trackwp + forwardtrack;                                                                                                   //H - Distance from Previous Waypoint to lookahead waypoint
+  ROS_INFO("forwardtrack : %.4f",forwardtrack); 
 
+  float path_angle;
+  if (wp_in[n].x < wp_in[n - 1].x)
+  {
+    path_angle = M_PI + atan2(wp_in[n].y - wp_in[n - 1].y, wp_in[n].x - wp_in[n - 1].x);
+  }else{
+    path_angle = atan2(wp_in[n].y - wp_in[n - 1].y, wp_in[n].x - wp_in[n - 1].x);
+  }
+  ROS_INFO("path_angle : %.4f",path_angle);
   //Set lookahead WP coordinates
-  float yi = (sin(phi_path) * lookpath) + wp_in[n - 1].y;
-  float xi = (cos(phi_path) * lookpath) + wp_in[n - 1].x;
-  ROS_INFO("yi : %.2f xi : %.2f",xi,yi);
+  float yi = (sin(path_angle) * lookpath) + wp_in[n - 1].y;
+  float xi = (cos(path_angle) * lookpath) + wp_in[n - 1].x;
+  ROS_INFO("xi : %.2f yi : %.2f",xi,yi);
 
-  // float angle_to_wp = atan2(wp_in[n].y-d_pose.pose.position.y, wp_in[n].x-d_pose.pose.position.x);
-  // float heading_error = angle_to_wp - psi;
-
-  float thetai = atan2(xi - d_pose.pose.pose.position.x , yi - d_pose.pose.pose.position.y); //Angle to lookahead waypoint
-  float thetae = d_heading - thetai; //Angle of drone subtracted from angle to lookahead
-
+  float thetai = atan2(yi - d_pose.pose.pose.position.y , xi - d_pose.pose.pose.position.x);    //Angle to lookahead waypoint
+  ROS_INFO("Angle to Lookahead: %.3f",thetai);
+  float thetae = d_heading - thetai;                                                            //Error between current heading and heading required to intermediate waypoint
+  ROS_INFO("Angle error: %.3f",thetae);
   //Do something to v_des to reduce speed if error gets too high by using form_e(error_point)
 
-  cmd_twist.twist.angular.z = d_twist.twist.angular.z - thetae*0.3;
-  // ROS_INFO("Turn Rate: %.2f Velocity x:%f y:%f z:%f",cmd_twist.twist.angular.z, d_twist.twist.linear.x,d_twist.twist.linear.y,d_twist.twist.linear.z);
-
+  cmd_twist.twist.angular.z = d_twist.twist.angular.z + thetae*0.3;
 
   // cmd_twist.twist.angular.z = 0.2; //positive is left
   forward(v_des);
@@ -152,11 +162,11 @@ void move(float v_des, float lookahead)
 
   cmd_twist.twist.linear.z = d_twist.twist.linear.z + (wp_in[n].z - d_pose.pose.pose.position.z) * 0.5;
 
-  // ROS_INFO("V Input x:%f y:%f z:%f yaw:%f", cmd_twist.twist.linear.x, cmd_twist.twist.linear.y, cmd_twist.twist.linear.z, cmd_twist.twist.angular.z);
+  ROS_INFO("Turn Rate: %.2f Velocity x:%f y:%f z:%f",cmd_twist.twist.angular.z, d_twist.twist.linear.x,d_twist.twist.linear.y,d_twist.twist.linear.z);
   // twist_pub.publish(cmd_twist);
 }
 
-bool check_waypoint_reached(float pos_tolerance = 0.3) //const std::vector<gnc_WP> wp_in = {}
+bool check_waypoint_reached(float pos_tolerance = 0.3)
 {
   //check for correct position
   float deltaX = abs(wp_in[n].x - d_pose.pose.pose.position.x);
@@ -177,45 +187,46 @@ bool check_waypoint_reached(float pos_tolerance = 0.3) //const std::vector<gnc_W
 
 int main(int argc, char **argv)
 {
-
   ros::init(argc, argv, "gnc_node");
   ros::NodeHandle gnc_node("~");
+  init_publisher_subscriber(gnc_node);
+  
+  ROS_INFO("Position (%.2f,%.2f) Heading %.3f",d_pose.pose.pose.position.x, d_pose.pose.pose.position.y, d_heading);
   wp_in = func_wplist();
   ROS_INFO("First WP: %f,%f   Second WP: %f,%f", wp_in[0].x, wp_in[0].y, wp_in[1].x, wp_in[1].y);
-  int wp_size;
-
-  init_publisher_subscriber(gnc_node);
+  // int wp_size;
+  // wp_size = wp_in.size();
+  
   // error_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/pos_error",10, error_cb);
   // wp_sub = gnc_node.subscribe<geometry_msgs::Pose>("/gnc/goal", 10, nav_wp);
   // bool_pub = gnc_node.advertise<std_msgs::Bool>("/gnc/wpreach", 10);
-  wp_size = wp_in.size();
+ 
 
   wait4connect();
   set_mode("GUIDED");
   // takeoff(3);
   // ROS_INFO("Started waypoint navigation with %i waypoints", wp_size);
-  move(0.3, 0.5);
-
-  ros::Rate loop_rate(0.1);
-  ros::Duration(4.0).sleep();
+  ROS_INFO("First Waypoint x:%f y:%f z:%f", wp_in[n].x, wp_in[n].y, wp_in[n].z);
+  move(0.5, 0.3);
+  ros::Rate loop_rate(1);
+  // ros::Duration(4.0).sleep();
   while (ros::ok())
   {
-    twist_pub.publish(cmd_twist);
-    ROS_INFO("First Waypoint x:%f y:%f z:%f", wp_in[n].x, wp_in[n].y, wp_in[n].z);
+    
 
-    while (n < wp_size)
-    {
+    // while (n < wp_size)
+    // {
       
-      if (check_waypoint_reached(0.3))
-      {
-        n++;
-      }
-    }
-    if (n == wp_size)
-    {
-      land();
-    }
-    ros::spinOnce();
+    //   if (check_waypoint_reached(0.3))
+    //   {
+    //     n++;
+    //   }
+    // }
+    // if (n == wp_size)
+    // {
+    //   land();
+    // }
+    ros::spinOnce(); //set to spinonce
     loop_rate.sleep();
   }
 
