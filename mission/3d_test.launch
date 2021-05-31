@@ -14,6 +14,8 @@
 			<param name="namespace" value="/drone2"/>
 			<param name="use_sim_time"  value="true" />
 			<param name="number" value="2" />
+			<param name="offset" value="[-5 0]" />
+			<!-- <rosparam param="offset"> [-5 0] </rosparam> -->
 		</node>
 	</group>
 	<group>
@@ -22,7 +24,9 @@
 			<!-- pkg = folder, type = .cpp name  output =???? ns = node name/namespace -->
 			<param name="namespace" value="/drone3"/>
 			<param name="use_sim_time"  value="true" />
-			<param name="number" value="3" />
+			<param name="number" value="3" /> <!--Used to assign relative formation-->
+			<param name="offset" value="[5 0]" /> <!--Used to compensate for misaligned local world frame-->
+			<!-- <rosparam param="offset"> [5 0] </rosparam> -->
 		</node>
 	</group>
 </launch>
