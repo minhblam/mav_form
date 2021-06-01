@@ -66,6 +66,12 @@ void pose_cb(const nav_msgs::Odometry::ConstPtr &msg)
   float qz = d_pose.pose.pose.orientation.z;
   float psi = atan2(2 * (qw * qz + qx * qy) , 1 - 2 * (qy * qy + qz * qz) );
   d_heading = psi;
+
+  ros::NodeHandle gnc_node("~");
+  gnc_node.getParam("offset", d_offset);
+
+  d_pose.pose.pose.position.x = d_pose.pose.pose.position.x + (-d_offset[1]);
+  d_pose.pose.pose.position.y = d_pose.pose.pose.position.y + d_offset[0];
   // ROS_INFO("Position x:%.3f y:%.3f z:%.3f",d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_pose.pose.pose.position.z );
 }
 
