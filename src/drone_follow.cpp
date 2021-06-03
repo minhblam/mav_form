@@ -121,6 +121,7 @@ int main(int argc, char **argv)
   set_mode("GUIDED");
 
   takeoff(3);
+  ros::Duration(5.0).sleep();
 
   // bool wp_nav = 1; //Change this to 0 when navigation is complete
 
