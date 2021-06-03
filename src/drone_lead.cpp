@@ -104,6 +104,8 @@ void move(float v_des, float lookahead) // std::vector<gnc_WP> wp_in
 
   cmd_twist.twist.angular.z = thetae;
   // cmd_twist.twist.angular.z = 0.2; //positive is left
+  //https://gamedev.net/forums/topic/566862-how-do-i-convert-an-angle-to-the-range-pipi/4627269/
+  //x = ::atan2 ( ::sin ( x ), ::cos ( x ) ) ;
   cmd_twist.twist.linear.x = cos(psi) * v_des; //X Axis control based on heading (To simulate moving forward)
   cmd_twist.twist.linear.y = sin(psi) * v_des; //Y Axis control based on heading (To simulate moving forward)
 
