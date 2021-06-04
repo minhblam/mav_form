@@ -68,10 +68,13 @@ void pose_cb(const nav_msgs::Odometry::ConstPtr &msg)
   d_heading = psi;
 
   ros::NodeHandle gnc_node("~");
-  gnc_node.getParam("offset", d_offset);
+  float x_offset;
+  float y_offset;
+  gnc_node.getParam("x_offset", x_offset);
+  gnc_node.getParam("y_offset", y_offset);
 
-  d_pose.pose.pose.position.x = d_pose.pose.pose.position.x + (-d_offset[1]);
-  d_pose.pose.pose.position.y = d_pose.pose.pose.position.y + d_offset[0];
+  d_pose.pose.pose.position.x = d_pose.pose.pose.position.x + (-y_offset);
+  d_pose.pose.pose.position.y = d_pose.pose.pose.position.y + x_offset;
   // ROS_INFO("Position x:%.3f y:%.3f z:%.3f",d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_pose.pose.pose.position.z );
 }
 
