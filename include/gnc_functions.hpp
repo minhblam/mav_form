@@ -257,6 +257,7 @@ int land()
 /*      Establish Connections
 */
 
+
 int ros_inumber(ros::NodeHandle controlnode)
 {
   int ros_number;
@@ -285,7 +286,44 @@ float ros_fnumber(ros::NodeHandle controlnode)
   return ros_number;
 }
 
+float spawn_offset(std::string axis, ros::NodeHandle controlnode)
+{
+  float d_spawn;
+  if (!controlnode.hasParam((axis+"_offset").c_str()))
+  {
+    ROS_INFO("Drone %i has no %s offset set, using 0",ros_inumber(controlnode),axis.c_str());
+  }else{
+    controlnode.getParam((axis+"_offset").c_str(),d_spawn);
+    ROS_INFO("Drone %i using %s offset of %f",ros_inumber(controlnode),axis.c_str(),d_spawn);
+  }
+  return d_spawn;
+}
 
+/* Debug Print Functions
+*/
+void pos_print()
+{
+  float xd = d_pose.pose.pose.position.x;
+  float yd = d_pose.pose.pose.position.y;
+  float angle = d_heading;
+  ROS_INFO("xd:%.3f yd:%.3f angle:%.3f",xd,yd,angle);
+  // float wpx = wp_in[n].x;
+  // float wpy = wp_in[n].y;
+  // ROS_INFO("xd:%.3f yd:%.3f wpx:%.3f wpy::%.3f angle:%.3f",xd,yd,wpx,wpy,angle);
+}
+
+void vel_print()
+{
+  float xdv = d_twist.twist.linear.x;
+  float ydv = d_twist.twist.linear.y;
+  float zdv = d_twist.twist.linear.y;
+  float z_yaw = d_twist.twist.angular.z;
+
+  ROS_INFO("xdv:%.3f ydv:%.3f zdv:%.3f Turn Rate: %.3f",xdv,ydv,zdv,z_yaw);
+}
+
+/* Initiate Publisher and Subscribers
+*/
 int init_leader_subscriber(ros::NodeHandle controlnode)
 {
   lead_pose_sub = controlnode.subscribe<nav_msgs::Odometry>("/drone1/mavros/global_position/local", 10, lead_pose_cb);// add unique callback
@@ -321,9 +359,9 @@ int init_publisher_subscriber(ros::NodeHandle controlnode)
   arming_client = controlnode.serviceClient<mavros_msgs::CommandBool>((ros_namespace + "/mavros/cmd/arming").c_str());
   //Takeoff Client
   takeoff_client = controlnode.serviceClient<mavros_msgs::CommandTOL>((ros_namespace + "/mavros/cmd/takeoff").c_str());
-
+  //Landing Client
   land_client = controlnode.serviceClient<mavros_msgs::CommandTOL>((ros_namespace + "/mavros/cmd/land").c_str());
-
+  //MAVLink-Ardupilot Command Client
   command_client = controlnode.serviceClient<mavros_msgs::CommandLong>((ros_namespace +"/mavros/cmd/command").c_str());
 
   return 0;

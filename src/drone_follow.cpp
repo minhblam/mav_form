@@ -6,9 +6,9 @@
 ros::Publisher error_pub;
 geometry_msgs::Point error_point;
 
-
 gnc_error error_form(float xoff) //float yoff, float zoff
 {
+  //Verify if this is gazebo X or ROS X (ENU OR NED Frame)
   float x;
   float y;
   float z;
@@ -20,6 +20,8 @@ gnc_error error_form(float xoff) //float yoff, float zoff
   ros::NodeHandle gnc_node("~");
   int number_int = ros_inumber(gnc_node);
   float number_float = ros_fnumber(gnc_node);
+  float spawnx = spawn_offset("x",gnc_node);
+  float spawny = spawn_offset("y",gnc_node);
   
   if(number_int & 1) //If odd number
   {
@@ -28,8 +30,8 @@ gnc_error error_form(float xoff) //float yoff, float zoff
     x_off = xoff*(number_float/2);
   }
 
-  x = abs(cos(l_heading)*x_off);
-  y = abs(sin(l_heading)*x_off);
+  x = abs(cos(l_heading)*x_off) - spawny;
+  y = abs(sin(l_heading)*x_off) + spawnx;
 
 
   if(number_int & 1) //If odd number
@@ -79,9 +81,9 @@ gnc_error error_form(float xoff) //float yoff, float zoff
   return d_error;
 }
 
-void set_form(gnc_error d_error, float xoff)
+
+void set_form(float xoff)
 {
-  ros::NodeHandle gnc_node("~");
   cmd_twist.twist.linear.x = d_twist.twist.linear.x + error_form(xoff).x*0.6;
   cmd_twist.twist.linear.y = d_twist.twist.linear.y + error_form(xoff).y*0.6;
   cmd_twist.twist.linear.z = d_twist.twist.linear.z + error_form(xoff).z*0.6;
@@ -90,19 +92,16 @@ void set_form(gnc_error d_error, float xoff)
   float yaw_error = d_heading - l_heading; //error in radians
   cmd_twist.twist.angular.z = d_twist.twist.angular.z - yaw_error*0.3; //May need to change direction
   // cmd_twist.twist.angular.z = 0.2; //positive is left
-  if (ros_inumber(gnc_node)==2){
-    // ROS_INFO("Yaw Error: %f",yaw_error);
-  }
 
   twist_pub.publish(cmd_twist);
   // ROS_INFO("Drone %i Velocity inputs (%f,%f,%f)",ros_number(gnc_node),cmd_twist.twist.linear.x,cmd_twist.twist.linear.y,cmd_twist.twist.linear.z);
 }
 
-void publish_error (gnc_error error)
+void publish_error (float xoff)
 {
-  error_point.x = error.x;
-  error_point.y = error.y;
-  error_point.y = error.z;
+  error_point.x = error_form(xoff).x;
+  error_point.y = error_form(xoff).y;
+  error_point.z = error_form(xoff).z;
   error_pub.publish(error_point);
 }
 
@@ -113,6 +112,10 @@ int main(int argc, char **argv)
 
   init_publisher_subscriber(gnc_node);
   init_leader_subscriber(gnc_node);
+
+  float xoff = 2; //metres????
+  float spawnx = spawn_offset("x",gnc_node);
+  float spawny = spawn_offset("y",gnc_node);
 
   error_pub = gnc_node.advertise<geometry_msgs::Point>("/gnc/pos_error",10);
 
@@ -125,12 +128,11 @@ int main(int argc, char **argv)
 
   // bool wp_nav = 1; //Change this to 0 when navigation is complete
 
-  float xoff = 2; //metres????
   ros::Rate loop_rate(3);
   while (ros::ok()) // && wp_nav
   {
-    set_form(error_form(xoff),xoff);
-    publish_error(error_form(xoff));
+    set_form(xoff);
+    publish_error(xoff);
     ros::spinOnce();
     loop_rate.sleep();
   }
