@@ -6,7 +6,7 @@
 ros::Publisher error_pub;
 geometry_msgs::Point error_point;
 
-gnc_error error_form(float xoff) //float yoff, float zoff
+gnc_error error_form(float xoff, float spawnx, float spawny) //float yoff, float zoff
 {
   //Verify if this is gazebo X or ROS X (ENU OR NED Frame)
   float x;
@@ -20,8 +20,6 @@ gnc_error error_form(float xoff) //float yoff, float zoff
   ros::NodeHandle gnc_node("~");
   int number_int = ros_inumber(gnc_node);
   float number_float = ros_fnumber(gnc_node);
-  float spawnx = spawn_offset("x",gnc_node);
-  float spawny = spawn_offset("y",gnc_node);
   
   if(number_int & 1) //If odd number
   {
@@ -30,63 +28,68 @@ gnc_error error_form(float xoff) //float yoff, float zoff
     x_off = xoff*(number_float/2);
   }
 
-  x = abs(cos(l_heading)*x_off) - spawny;
-  y = abs(sin(l_heading)*x_off) + spawnx;
+  x = abs(sin(l_heading)*x_off);
+  y = abs(cos(l_heading)*x_off);
 
 
   if(number_int & 1) //If odd number
   {
-    // ROS_INFO("Drone %i is an odd numbered drone",namespace_int);
     if (l_heading > -M_PI/2 && l_heading < M_PI/2)
     {
       xf = lead_pose.pose.pose.position.x - x;
+      // ROS_INFO("-x");
     }else{
       xf = lead_pose.pose.pose.position.x + x;
+      // ROS_INFO("+x");
     }
     if (l_heading > 0 && l_heading <M_PI)
     {
       yf = lead_pose.pose.pose.position.y - y;
+      // ROS_INFO("-y");
     }else{
       yf = lead_pose.pose.pose.position.y + y;
+      // ROS_INFO("+y");
     }
   }else{ //If even number
-  // ROS_INFO("Drone %i is an odd numbered drone",namespace_int);
     if (l_heading < M_PI/2 && l_heading > -M_PI/2)
     {
-      xf = lead_pose.pose.pose.position.x + x;
+      xf = lead_pose.pose.pose.position.x + spawny + x;
+      ROS_INFO("+x");
     }else{
-      xf = lead_pose.pose.pose.position.x - x;
+      xf = lead_pose.pose.pose.position.x + spawny - x;
+      ROS_INFO("-x");
     }
     if (l_heading > 0 && l_heading <M_PI)
     {
-      yf = lead_pose.pose.pose.position.y + y;
+      yf = lead_pose.pose.pose.position.y - spawnx + y;
+      ROS_INFO("+y");
     }else{
-      yf = lead_pose.pose.pose.position.y - y;
+      yf = lead_pose.pose.pose.position.y - spawnx - y;
+      ROS_INFO("-y");
     }
   }
-  zf = lead_pose.pose.pose.position.z;
+  zf = lead_pose.pose.pose.position.z + 1;
 
   d_error.x = xf - d_pose.pose.pose.position.x;
   d_error.y = yf - d_pose.pose.pose.position.y;
   d_error.z = zf - d_pose.pose.pose.position.z;
-  ROS_INFO("OFFSET head:%.3f space: %.1f Drone %.1f    x_off: %.2f and y_off: %.2f     L_POS lx: %.2f ly: %.2f     DES xf: %.2f yf: %.2f    D_POS x: %.2f y: %.2f    ERR: xe: %.2f ye: %.2f",l_heading,x_off,number_float,x,y,lead_pose.pose.pose.position.x,lead_pose.pose.pose.position.y,xf,yf,d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_error.x,d_error.y);
   
-  // if (ros_inumber(gnc_node) == 2)
-  // {
-  //   // ROS_INFO("Heading Desired z:%f Desired x:%f y:%f z:%f   Actual x:%f y:%f z:%f",l_heading,xf,yf,zf,d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_pose.pose.pose.position.z);
-  //   // 
-  //   // ROS_INFO("Drone No. %i formation error (%f,%f,%f)",ros_inumber(gnc_node),d_error.x,d_error.y,d_error.z );
-  // }
+  
+  if (ros_inumber(gnc_node) == 3)
+  {
+    ROS_INFO("OFFSET head:%.3f space: %.1f Drone %.1f    x_off: %.2f and y_off: %.2f     L_POS lx: %.2f ly: %.2f     DES xf: %.2f yf: %.2f    D_POS x: %.2f y: %.2f    ERR: xe: %.2f ye: %.2f",l_heading,x_off,number_float,x,y,lead_pose.pose.pose.position.x,lead_pose.pose.pose.position.y,xf,yf,d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_error.x,d_error.y);
+    // ROS_INFO("Heading Desired z:%f Desired x:%f y:%f z:%f   Actual x:%f y:%f z:%f",l_heading,xf,yf,zf,d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_pose.pose.pose.position.z);
+  }
   // ROS_INFO("Leader Heading %f",l_heading);
   return d_error;
 }
 
 
-void set_form(float xoff)
+void set_form(float xoff, float spawnx, float spawny)
 {
-  cmd_twist.twist.linear.x = d_twist.twist.linear.x + error_form(xoff).x*0.6;
-  cmd_twist.twist.linear.y = d_twist.twist.linear.y + error_form(xoff).y*0.6;
-  cmd_twist.twist.linear.z = d_twist.twist.linear.z + error_form(xoff).z*0.6;
+  cmd_twist.twist.linear.x = d_twist.twist.linear.x + error_form(xoff,spawnx,spawny).x*0.6;
+  cmd_twist.twist.linear.y = d_twist.twist.linear.y + error_form(xoff,spawnx,spawny).y*0.6;
+  cmd_twist.twist.linear.z = d_twist.twist.linear.z + error_form(xoff,spawnx,spawny).z*0.6;
   // ROS_INFO("Error x:%f y:%f z:%f",error_form(xoff).x,error_form(xoff).y,error_form(xoff).z);
 
   float yaw_error = d_heading - l_heading; //error in radians
@@ -97,11 +100,11 @@ void set_form(float xoff)
   // ROS_INFO("Drone %i Velocity inputs (%f,%f,%f)",ros_number(gnc_node),cmd_twist.twist.linear.x,cmd_twist.twist.linear.y,cmd_twist.twist.linear.z);
 }
 
-void publish_error (float xoff)
+void publish_error (float xoff,float spawnx, float spawny)
 {
-  error_point.x = error_form(xoff).x;
-  error_point.y = error_form(xoff).y;
-  error_point.z = error_form(xoff).z;
+  error_point.x = error_form(xoff,spawnx,spawny).x;
+  error_point.y = error_form(xoff,spawnx,spawny).y;
+  error_point.z = error_form(xoff,spawnx,spawny).z;
   error_pub.publish(error_point);
 }
 
@@ -118,7 +121,7 @@ int main(int argc, char **argv)
   float spawny = spawn_offset("y",gnc_node);
 
   error_pub = gnc_node.advertise<geometry_msgs::Point>("/gnc/pos_error",10);
-
+  ros::Duration(5.0).sleep();
   wait4connect();
 
   set_mode("GUIDED");
@@ -131,8 +134,8 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(3);
   while (ros::ok()) // && wp_nav
   {
-    set_form(xoff);
-    publish_error(xoff);
+    set_form(xoff,spawnx,spawny);
+    publish_error(xoff,spawnx,spawny);
     ros::spinOnce();
     loop_rate.sleep();
   }

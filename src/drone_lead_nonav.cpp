@@ -41,29 +41,29 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "gnc_node");
   ros::NodeHandle gnc_node("~");
   init_publisher_subscriber(gnc_node);
-  ros::Duration(10.0).sleep();
+  ros::Duration(3.0).sleep();
 
   
   error_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/pos_error",10, error_cb);
   // wp_sub = gnc_node.subscribe<geometry_msgs::Pose>("/gnc/goal", 10, nav_wp);
   // bool_pub = gnc_node.advertise<std_msgs::Bool>("/gnc/wpreach", 10);
  
-  bool navigate = 1; //This may be able to be used as a topic like nav_complete.publish(navigate) where std_msgs::Bool navigate as a global.
+  // bool navigate = 1; //This may be able to be used as a topic like nav_complete.publish(navigate) where std_msgs::Bool navigate as a global.
   wait4connect();
   set_mode("GUIDED");
-  ros::Duration(4.0).sleep();
   takeoff(3);
   ros::Rate loop_rate(3);
-  ros::Duration(60.0).sleep();
+  // ros::Duration(1000.0).sleep();
 
-  // while (ros::ok() && navigate)
-  // {
+  while (ros::ok())
+  {
+    cmd_twist.twist.angular.z = 0.3;
+    twist_pub.publish(cmd_twist);
+    ros::spinOnce(); //set to spinonce
+    loop_rate.sleep();
+  }
 
-  //   ros::spinOnce(); //set to spinonce
-  //   loop_rate.sleep();
-  // }
-
-  land();
+  // land();
 
 
   return 0;
