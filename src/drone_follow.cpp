@@ -34,7 +34,7 @@ gnc_error error_form(float xoff, float spawnx, float spawny) //float yoff, float
 
   if(number_int & 1) //If odd number
   {
-    if (l_heading > -M_PI/2 && l_heading < M_PI/2)
+    if (l_heading > 0 && l_heading <M_PI)
     {
       xf = lead_pose.pose.pose.position.x - x;
       // ROS_INFO("-x");
@@ -42,16 +42,16 @@ gnc_error error_form(float xoff, float spawnx, float spawny) //float yoff, float
       xf = lead_pose.pose.pose.position.x + x;
       // ROS_INFO("+x");
     }
-    if (l_heading > 0 && l_heading <M_PI)
+    if (l_heading <= M_PI/2 && l_heading >= -M_PI/2)
     {
-      yf = lead_pose.pose.pose.position.y - y;
+      yf = lead_pose.pose.pose.position.y - spawnx - y;
       // ROS_INFO("-y");
     }else{
-      yf = lead_pose.pose.pose.position.y + y;
+      yf = lead_pose.pose.pose.position.y - spawnx + y;
       // ROS_INFO("+y");
     }
   }else{ //If even number
-    if (l_heading < M_PI/2 && l_heading > -M_PI/2)
+    if (l_heading <= M_PI/2 && l_heading >= -M_PI/2)
     {
       xf = lead_pose.pose.pose.position.x + spawny + x;
       ROS_INFO("+x");
