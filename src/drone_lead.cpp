@@ -1,5 +1,7 @@
-// Follower drones. Currently set to P stabilised. Velocity error control relative to lead drone.
-// Manages direct control of drones. This includes connection of telemetry and control of all drones and receives pathplanning commands from the formation manager.
+/*
+  Lead Drone Node. Navigation is based on the leader. Navigation speed is limited by the positional formation error from the follower drones.
+  Navigation is set as direct yaw to each waypoint.
+*/
 #include <gnc_functions.hpp>
 
 #include <geometry_msgs/Point.h>
@@ -12,35 +14,12 @@ std::vector<gnc_WP> wp_in;
 void error_cb (const geometry_msgs::Point::ConstPtr &msg)
 {
   error_point = *msg;
-  // std::vector<gnc_error> error_in;
-  // gnc_error error_group;
-  // float sum_error;
-
-  // error_group.x = error_point.x;
-  // error_group.y = error_point.y;
-  // error_group.z = error_point.z;
-  // ros::NodeHandle gnc_node("~");
-  // // The idea is to have the vector set to the last 3 values
-  // if (error_in.size() < (ros_inumber(gnc_node)-1))
-  // {
-  //   error_in.push_back(error_group);
-  // }else{
-  //   error_in.erase(error_in.begin(), error_in.begin()+1);
-  // }
-  // float sum = 0;
-  // for (int i = 0; i < (ros_inumber(gnc_node)-1);i++)
-  // {
-  //   sum = sum + error_in[i];
-  // }
-  // float avg_error = sum/error_in.size();
-  // ROS_INFO("Sum error = %.2f",avg_error);
 }
 
 std::vector<gnc_WP> func_wplist() //Create a separate function for a list of waypoints
 {
-  // std::vector<gnc_WP> wp_in;
   gnc_WP wp_list;
-  wp_list.x = 0; //update this to 0,1
+  wp_list.x = 0; //0
   wp_list.y = 0;
   wp_list.z = 3;
   wp_in.push_back(wp_list);
@@ -113,11 +92,11 @@ void move(float v_des)
   }
 
   float error = -(d_heading - des_angle);
-  ROS_INFO("Desired angle: %.2f",des_angle);
+  // ROS_INFO("Desired angle: %.2f",des_angle);
   float angle_e = ::atan2(::sin(error),::cos(error));
   //Do something to v_des to reduce speed if error gets too high by using form_e(error_point)
   cmd_twist.twist.angular.z = angle_e*0.7;                                      //Yaw Control positive is left
-  forward(v_des);                                                               //Move forward in body frame
+  forward(v_des);                                                               //Move forward function in body frame
   cmd_twist.twist.linear.z = (wp_in[n].z - d_pose.pose.pose.position.z) * 0.2;  //Vertical control
   twist_pub.publish(cmd_twist);
 }
@@ -127,7 +106,7 @@ bool check_waypoint_reached(float pos_tolerance = 0.3)
   //check for correct position only in x and y (may add z)
   float deltaX = abs(wp_in[n].x - d_pose.pose.pose.position.x);
   float deltaY = abs(wp_in[n].y - d_pose.pose.pose.position.y);
-  float deltaZ = 0;
+  float deltaZ = 0; //abs(wp_in[n].z - d_pose.pose.pose.position.z);
   float dMag = sqrt(pow(deltaX, 2) + pow(deltaY, 2) + pow(deltaZ, 2));
 
   if (dMag < pos_tolerance)
@@ -144,32 +123,36 @@ bool check_waypoint_reached(float pos_tolerance = 0.3)
 
 int main(int argc, char **argv)
 {
+  /* Establish Publisher and Subscribers
+  */
   ros::init(argc, argv, "gnc_node");
   ros::NodeHandle gnc_node("~");
   init_publisher_subscriber(gnc_node);
-  ros::Duration(10.0).sleep();
+  error_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/pos_error",10, error_cb);
+  // wp_sub = gnc_node.subscribe<geometry_msgs::Pose>("/gnc/goal", 10, nav_wp); Subscribe to Waypoint List topic
+  // bool_pub = gnc_node.advertise<std_msgs::Bool>("/gnc/wpreach", 10);         Publish navigate bool
+  // ros::Duration(10.0).sleep(); //May be required to ensure subscriber and publisher is ready
   
+  /* Initiate Waypoint List
+  */
   wp_in = func_wplist();
   int wp_size;
   wp_size = wp_in.size();
 
-  
-  error_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/pos_error",10, error_cb);
-  // wp_sub = gnc_node.subscribe<geometry_msgs::Pose>("/gnc/goal", 10, nav_wp);
-  // bool_pub = gnc_node.advertise<std_msgs::Bool>("/gnc/wpreach", 10);
-   
+  /* Drone Startup Procedure
+  */
   wait4connect();
-  set_mode("GUIDED");
-  ros::Duration(4.0).sleep();
+  set_mode("GUIDED");  ros::Duration(4.0).sleep();
+  takeoff(3);          ros::Duration(5.0).sleep(); //Make this extra long just for follower to move to position
 
-  takeoff(3);
-  pos_print();
+
+  /*Begin Control and Navigation
+  */
   ROS_INFO("%i waypoints, starting with Waypoint %i (x:%f y:%f z:%f)", wp_size, n,wp_in[n].x, wp_in[n].y, wp_in[n].z);
-  
+  bool wp_nav = 1; //This may be able to be used as a topic like nav_complete.publish(navigate) where std_msgs::Bool navigate as a global.
+
   ros::Rate loop_rate(3);
-  ros::Duration(7.0).sleep();
-  bool navigate = 1; //This may be able to be used as a topic like nav_complete.publish(navigate) where std_msgs::Bool navigate as a global.
-  while (ros::ok() && navigate)
+  while (ros::ok() && wp_nav)
   {
     if (n < wp_size)
     {
@@ -182,7 +165,8 @@ int main(int argc, char **argv)
     }else{
       land();
       ros::Duration(3.0).sleep();
-      navigate = 0;
+      wp_nav = 0;
+      ROS_INFO("All waypoints reached, shutting down...");
     }
     ros::spinOnce(); //set to spinonce
     loop_rate.sleep();

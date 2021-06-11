@@ -53,11 +53,11 @@ int main(int argc, char **argv)
   set_mode("GUIDED");
   takeoff(3);
   ros::Rate loop_rate(3);
-  // ros::Duration(1000.0).sleep();
+  ros::Duration(12.0).sleep();
 
   while (ros::ok())
   {
-    cmd_twist.twist.angular.z = 0.3;
+    cmd_twist.twist.angular.z = 0.1;
     twist_pub.publish(cmd_twist);
     ros::spinOnce(); //set to spinonce
     loop_rate.sleep();
