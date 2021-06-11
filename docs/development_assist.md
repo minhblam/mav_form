@@ -14,7 +14,7 @@ Run ArduPilot instances
 ```
 ./1sitl.sh
 ./2sitl.sh
-./2sitl.sh
+./3sitl.sh
 ```
 In a new tab (Ctrl + Shift + T)
 Run the MAVROS instance
