@@ -66,16 +66,6 @@ void pose_cb(const nav_msgs::Odometry::ConstPtr &msg)
   float qz = d_pose.pose.pose.orientation.z;
   float psi = atan2(2 * (qw * qz + qx * qy) , 1 - 2 * (qy * qy + qz * qz) );
   d_heading = psi;
-
-  ros::NodeHandle gnc_node("~");
-  float x_offset;
-  float y_offset;
-  gnc_node.getParam("x_offset", x_offset);
-  gnc_node.getParam("y_offset", y_offset);
-
-  // d_pose.pose.pose.position.x = d_pose.pose.pose.position.x + (-y_offset);
-  // d_pose.pose.pose.position.y = d_pose.pose.pose.position.y + x_offset;
-  // ROS_INFO("Position x:%.3f y:%.3f z:%.3f",d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_pose.pose.pose.position.z );
 }
 
 void state_cb(const mavros_msgs::State::ConstPtr &msg)
@@ -272,19 +262,19 @@ int ros_inumber(ros::NodeHandle controlnode)
   return ros_number;
 }
 
-float ros_fnumber(ros::NodeHandle controlnode)
-{
-  float ros_number;
-	if (!controlnode.hasParam("number"))
-	{
+// float ros_fnumber(ros::NodeHandle controlnode)
+// {
+//   float ros_number;
+// 	if (!controlnode.hasParam("number"))
+// 	{
 
-		// ROS_INFO("using default namespace");
-	}else{
-		controlnode.getParam("number", ros_number);
-		// ROS_INFO("using namespace %s", ros_namespace.c_str());
-	}
-  return ros_number;
-}
+// 		// ROS_INFO("using default namespace");
+// 	}else{
+// 		controlnode.getParam("number", ros_number);
+// 		// ROS_INFO("using namespace %s", ros_namespace.c_str());
+// 	}
+//   return ros_number;
+// }
 
 float spawn_offset(std::string axis, ros::NodeHandle controlnode)
 {
@@ -292,6 +282,7 @@ float spawn_offset(std::string axis, ros::NodeHandle controlnode)
   if (!controlnode.hasParam((axis+"_offset").c_str()))
   {
     ROS_INFO("Drone %i has no %s offset set, using 0",ros_inumber(controlnode),axis.c_str());
+    d_spawn = 0;
   }else{
     controlnode.getParam((axis+"_offset").c_str(),d_spawn);
     ROS_INFO("Drone %i using %s offset of %f",ros_inumber(controlnode),axis.c_str(),d_spawn);

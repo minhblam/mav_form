@@ -36,4 +36,19 @@
 		</node>
 	</group>
 
+	<group>
+		
+		<node pkg="mav_form" type="drone_follow" name="follow" output="screen" ns="/drone4">
+			<!-- pkg = folder, type = .cpp name  output =???? ns = node name/namespace -->
+			<param name="namespace" value="/drone4"/>
+			<param name="use_sim_time"  value="true" />
+
+			<!--Assign relative formation-->
+			<param name="number" value="4" /> 
+			<!--Compensate for misaligned local frame. In Gazebo ENU Frame. ROS Uses NED Frame-->
+			<param name="x_offset" value="-10.0" /> 
+			<param name="y_offset" value ="0.0" />
+		</node>
+	</group>
+
 </launch>

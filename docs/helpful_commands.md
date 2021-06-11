@@ -2,10 +2,11 @@
 
 ## Specific Commands
 ```
-rostopic info /drone1/mavros/global_position/global
+rostopic info /drone1/mavros/global_position/local
 rostopic info /drone1/mavros/local_position/pose
 rostopic echo -c /drone1/mavros/state
 rostopic echo -c /drone1/mavros/local_position/pose
+rostopic echo -c /gnc/error
 
 ```
 

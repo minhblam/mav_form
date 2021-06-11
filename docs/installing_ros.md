@@ -86,38 +86,7 @@ sudo apt install ros-melodic-gazebo-ros ros-melodic-gazebo-plugins
 
 To support multi-drone presence, extra modifications are needed to the ArduPilot package.
 
-### Easy Process TEST 
-
-```
-cp mav_form/src/b2_sim/scripts/ardu-parms/gazebo-drone1.parm ardupilot/Tools/autotest/default_params/
-cp mav_form/src/b2_sim/scripts/ardu-parms/gazebo-drone2.parm ardupilot/Tools/autotest/default_params/
-cp mav_form/src/b2_sim/scripts/ardu-parms/gazebo-drone3.parm ardupilot/Tools/autotest/default_params/
-cp mav_form/src/b2_sim/scripts/ardu-parms/gazebo-drone4.parm ardupilot/Tools/autotest/default_params/
-```
-
-### Manual Process
-
-In  `ardupilot/Tools/autotest/default_params`, create 2 or 4 `.parm` files under the name `gazebo-drone1` and onwards with the following text inside:
-
-```
-# Iris is X frame
-FRAME_CLASS 1
-FRAME_TYPE  1
-# IRLOCK FEATURE
-RC8_OPTION 39
-PLND_ENABLED    1
-PLND_TYPE       3
-# SONAR FOR IRLOCK
-SIM_SONAR_SCALE 10
-RNGFND1_TYPE 1
-RNGFND1_SCALING 10
-RNGFND1_PIN 0
-RNGFND1_MAX_CM 5000
-SYSID_THISMAV 1
-```
-Each file with their corresponding `SYSID_THISMAV` parameter value incrementing accordingly
-
-With these additions, the `vehicleinfo.py` file needs to be updated and is found in `ardupilot/Tools/autotest/pysim`
+The `vehicleinfo.py` file needs to be updated and is found in `ardupilot/Tools/autotest/pysim`
 ```
 gedit ardupilot/Tools/autotest/pysim/vehicleinfo.py
 ```
@@ -147,4 +116,35 @@ Under the ArduCopter "frames" block under `#SIM` under "IrisRos", add the follow
             },
 ```
 
-These files can also be found in the `supp/` folder.
+These files can also be found in the `external/` folder.
+
+### Updating .parm files - Easy Process
+
+```
+cp mav_form/external/ardu-parms/gazebo-drone1.parm ardupilot/Tools/autotest/default_params/
+cp mav_form/external/ardu-parms/gazebo-drone2.parm ardupilot/Tools/autotest/default_params/
+cp mav_form/external/ardu-parms/gazebo-drone3.parm ardupilot/Tools/autotest/default_params/
+cp mav_form/external/ardu-parms/gazebo-drone4.parm ardupilot/Tools/autotest/default_params/
+```
+
+### Updating .parm files - Manual Process
+
+In  `ardupilot/Tools/autotest/default_params`, create 2 or 4 `.parm` files under the name `gazebo-drone1` and onwards with the following text inside:
+
+```
+# Iris is X frame
+FRAME_CLASS 1
+FRAME_TYPE  1
+# IRLOCK FEATURE
+RC8_OPTION 39
+PLND_ENABLED    1
+PLND_TYPE       3
+# SONAR FOR IRLOCK
+SIM_SONAR_SCALE 10
+RNGFND1_TYPE 1
+RNGFND1_SCALING 10
+RNGFND1_PIN 0
+RNGFND1_MAX_CM 5000
+SYSID_THISMAV 1
+```
+Each file with their corresponding `SYSID_THISMAV` parameter value incrementing accordingly

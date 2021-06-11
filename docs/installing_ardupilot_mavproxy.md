@@ -48,3 +48,5 @@ cd ~/ardupilot/ArduCopter
 sim_vehicle.py -w
 ```
 Close the terminal and end the process once parameters have been set.
+
+## [2. Installing Gazebo and ArduPilot Plugins](installing_gazebo_ardupilotplugin.md)
