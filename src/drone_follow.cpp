@@ -8,6 +8,15 @@
 ros::Publisher error_pub;
 geometry_msgs::Point error_point;
 
+ros::Subscriber wp_sub;
+std_msgs::Bool wp_nav;
+
+void wp_cb (const std_msgs::Bool::ConstPtr &msg)
+{
+  wp_nav = *msg;
+}
+
+
 gnc_error error_form(float xoff, float spawnx, float spawny, int number)
 {
   //ROS NED Frame
@@ -105,6 +114,9 @@ int main(int argc, char **argv)
   init_publisher_subscriber(gnc_node);
   init_leader_subscriber(gnc_node);
   error_pub = gnc_node.advertise<geometry_msgs::Point>("/gnc/pos_error",10);
+  wp_sub = gnc_node.advertise<std_msgs::Bool>("/gnc/nav", 10,wp_cb);
+  wp_nav.data = 1;
+  bool navigate = 1;
 
   /* Initiate Formation Parameters
   */
@@ -122,10 +134,17 @@ int main(int argc, char **argv)
   /*Begin Control and Navigation
   */
   ros::Rate loop_rate(3);
-  while (ros::ok()) // && wp_nav
+  while (ros::ok() && navigate) // && wp_nav
   {
-    set_form(xoff,spawnx,spawny,number);
-    publish_error(xoff,spawnx,spawny,number);
+    if (wp_nav.data)
+    {
+      set_form(xoff,spawnx,spawny,number);
+      publish_error(xoff,spawnx,spawny,number);
+    }else{
+      land();
+      ros::Duration(3.0).sleep();
+      navigate = 0;
+    }
     ros::spinOnce();
     loop_rate.sleep();
   }

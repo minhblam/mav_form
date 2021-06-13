@@ -9,48 +9,64 @@ ros::Subscriber error_sub;
 geometry_msgs::Point error_point;
 
 int n = 1; //Waypoint Progression
-std::vector<gnc_WP> wp_in;
+std::vector<gnc_WP> wp_list;
+
+ros::Publisher wp_pub;
+std_msgs::Bool wp_nav;
+
+ros::Subscriber wplist_sub;
+geometry_msgs::Point wplist;
 
 void error_cb (const geometry_msgs::Point::ConstPtr &msg)
 {
   error_point = *msg;
 }
 
-std::vector<gnc_WP> func_wplist() //Create a separate function for a list of waypoints
+void wp_cb (const geometry_msgs::Point::ConstPtr &msg)
 {
-  gnc_WP wp_list;
-  wp_list.x = 0; //0
-  wp_list.y = 0;
-  wp_list.z = 3;
-  wp_in.push_back(wp_list);
-  wp_list.x = 3; //1
-  wp_list.y = 1;
-  wp_list.z = 3;
-  wp_in.push_back(wp_list);
-  wp_list.x = 9; //2
-  wp_list.y = 3;
-  wp_list.z = 3;
-  wp_in.push_back(wp_list);
-  wp_list.x = 9; //3
-  wp_list.y = 5;
-  wp_list.z = 3;
-  wp_in.push_back(wp_list);
-  wp_list.x = 9; //4
-  wp_list.y = 7;
-  wp_list.z = 3;
-  wp_in.push_back(wp_list);
-  wp_list.x = 5; //5
-  wp_list.y = 9;
-  wp_list.z = 3;
-  wp_in.push_back(wp_list);
-  return wp_in;
+  wplist = *msg;
+  gnc_WP wp;
+  wp.x = wplist.x; //0
+  wp.y = wplist.y;
+  wp.z = wplist.z;
+  wp_in.pushback(wp);
 }
+
+// std::vector<gnc_WP> func_wplist() //Create a separate function for a list of waypoints
+// {
+//   gnc_WP wp_list;
+//   wp_list.x = 0; //0
+//   wp_list.y = 0;
+//   wp_list.z = 3;
+//   wp_in.push_back(wp_list);
+//   wp_list.x = 3; //1
+//   wp_list.y = 1;
+//   wp_list.z = 3;
+//   wp_in.push_back(wp_list);
+//   wp_list.x = 9; //2
+//   wp_list.y = 3;
+//   wp_list.z = 3;
+//   wp_in.push_back(wp_list);
+//   wp_list.x = 9; //3
+//   wp_list.y = 5;
+//   wp_list.z = 3;
+//   wp_in.push_back(wp_list);
+//   wp_list.x = 9; //4
+//   wp_list.y = 7;
+//   wp_list.z = 3;
+//   wp_in.push_back(wp_list);
+//   wp_list.x = 5; //5
+//   wp_list.y = 9;
+//   wp_list.z = 3;
+//   wp_in.push_back(wp_list);
+//   return wp_in;
+// }
+
 
 void forward (float v_des) //Needs to add error from formation to slow speed as required
 {
   float vy;
   float vx;
-  //Drift may be partially compensated for by multiplying d_heading value???
 
   if (d_heading > -M_PI/2 && d_heading < M_PI/2) //from -1.57 to 1.57
     {
@@ -128,31 +144,31 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "gnc_node");
   ros::NodeHandle gnc_node("~");
   init_publisher_subscriber(gnc_node);
+  wplist_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/goal", 10, nav_wp);
   error_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/pos_error",10, error_cb);
-  // wp_sub = gnc_node.subscribe<geometry_msgs::Pose>("/gnc/goal", 10, nav_wp); Subscribe to Waypoint List topic
-  // bool_pub = gnc_node.advertise<std_msgs::Bool>("/gnc/wpreach", 10);         Publish navigate bool
+  wp_pub = gnc_node.advertise<std_msgs::Bool>("/gnc/nav", 10);
   // ros::Duration(10.0).sleep(); //May be required to ensure subscriber and publisher is ready
   
   /* Initiate Waypoint List
   */
-  wp_in = func_wplist();
-  int wp_size;
-  wp_size = wp_in.size();
+  // wp_in = func_wplist();
+  int wp_size = wp_in.size();
 
   /* Drone Startup Procedure
   */
   wait4connect();
   set_mode("GUIDED");  ros::Duration(4.0).sleep();
   takeoff(3);          ros::Duration(5.0).sleep(); //Make this extra long just for follower to move to position
-
+  wp_nav.data = 1; //This may be able to be used as a topic like nav_complete.publish(navigate) where std_msgs::Bool navigate as a global.
+  wp_pub.publish(wp_nav);
 
   /*Begin Control and Navigation
   */
   ROS_INFO("%i waypoints, starting with Waypoint %i (x:%f y:%f z:%f)", wp_size, n,wp_in[n].x, wp_in[n].y, wp_in[n].z);
-  bool wp_nav = 1; //This may be able to be used as a topic like nav_complete.publish(navigate) where std_msgs::Bool navigate as a global.
+  
 
   ros::Rate loop_rate(3);
-  while (ros::ok() && wp_nav)
+  while (ros::ok() && wp_nav.data)
   {
     if (n < wp_size)
     {
@@ -165,12 +181,12 @@ int main(int argc, char **argv)
     }else{
       land();
       ros::Duration(3.0).sleep();
-      wp_nav = 0;
+      wp_nav.data = 0;
       ROS_INFO("All waypoints reached, shutting down...");
     }
     ros::spinOnce(); //set to spinonce
     loop_rate.sleep();
   }
-
+  wp_pub.publish(wp_nav);
   return 0;
 }
