@@ -69,7 +69,7 @@ gnc_error error_form(float xoff, float spawnx, float spawny, int number)
       yf = lead_pose.pose.pose.position.y - spawnx + y;
     }
   }
-  zf = lead_pose.pose.pose.position.z + 1; // Add numbers here to offset position
+  zf = lead_pose.pose.pose.position.z; // Add numbers here to offset position
 
   d_error.x = xf - d_pose.pose.pose.position.x;
   d_error.y = yf - d_pose.pose.pose.position.y;
@@ -114,9 +114,10 @@ int main(int argc, char **argv)
   init_publisher_subscriber(gnc_node);
   init_leader_subscriber(gnc_node);
   error_pub = gnc_node.advertise<geometry_msgs::Point>("/gnc/pos_error",10);
-  wp_sub = gnc_node.advertise<std_msgs::Bool>("/gnc/nav", 10,wp_cb);
+  wp_sub = gnc_node.subscribe<std_msgs::Bool>("/gnc/nav", 10,wp_cb);
   wp_nav.data = 1;
   bool navigate = 1;
+  ros::Duration(20.0).sleep(); //May be required to ensure subscriber and publisher is ready
 
   /* Initiate Formation Parameters
   */

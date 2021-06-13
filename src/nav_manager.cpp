@@ -6,6 +6,8 @@
 ros::Publisher wp_pub;
 geometry_msgs::Point wplist;
 
+int i=0;
+
 std::vector<gnc_WP> func_wplist() //Create a separate function for a list of waypoints
 {
 	std::vector<gnc_WP> wp_in;
@@ -37,32 +39,51 @@ std::vector<gnc_WP> func_wplist() //Create a separate function for a list of way
 	return wp_in;
 }
 
+// void push_waypoints(std::vector<gnc_WP> wp_in)
+// {
+// 	int wp_size = wp_in.size();
+	
+// 	for (int i = 0;i < wp_size; i++)
+// 	{
+// 		wplist.x = wp_in[i].x;
+// 		wplist.y = wp_in[i].y;
+// 		wplist.z = wp_in[i].z;
+// 		wp_pub.publish(wplist);
+// 		ROS_INFO("Sending Waypoints");
+// 	}
+	
+// }
+
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "gnc_node");
 	ros::NodeHandle gnc_node("~");
-	wp_pub = gnc_node.advertise<geometry_msgs::Pose>("/gnc/goal", 10, latch = true);
+	wp_pub = gnc_node.advertise<geometry_msgs::Point>("/gnc/goal", 10);
 
-	// wp_in = func_wplist();
+	std::vector<gnc_WP> wp_in = func_wplist();
 	int wp_size = wp_in.size();
+	ROS_INFO("Processing Waypoints %i",wp_size);
+	
+
+	ros::Rate loop_rate(2);
+
+	// push_waypoints(wp_in);
+	ros::Duration(5.0).sleep();
 	bool publish = 1;
-
-	ros::Rate loop_rate(3);
-
 	while (ros::ok() && publish)
 	{
-		for (int i = 0; i < wp_size; i++)
-		{
-			wplist.x = wp_in[i].x;
-			wplist.y = wp_in[i].y;
-			wplist.z = wp_in[i].z;
-			wp_pub.publish(wp_list);
-			if (i == wp_size)
-			{
-				publish = 0;
-				ROS_INFO("All Waypoints published");
-			}
-		}
+		if (i < wp_size)
+	{
+		wplist.x = wp_in[i].x;
+		wplist.y = wp_in[i].y;
+		wplist.z = wp_in[i].z;
+		wp_pub.publish(wplist);
+		ROS_INFO("Sending Waypoint %i",i);
+		i++;
+	}else{
+		publish = 0;
+	}
+	
 		ros::spinOnce();
 		loop_rate.sleep();
 	}

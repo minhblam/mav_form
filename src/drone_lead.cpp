@@ -9,7 +9,7 @@ ros::Subscriber error_sub;
 geometry_msgs::Point error_point;
 
 int n = 1; //Waypoint Progression
-std::vector<gnc_WP> wp_list;
+std::vector<gnc_WP> wp_in;
 
 ros::Publisher wp_pub;
 std_msgs::Bool wp_nav;
@@ -29,7 +29,9 @@ void wp_cb (const geometry_msgs::Point::ConstPtr &msg)
   wp.x = wplist.x; //0
   wp.y = wplist.y;
   wp.z = wplist.z;
-  wp_in.pushback(wp);
+  wp_in.push_back(wp);
+  int size = wp_in.size();
+  ROS_INFO("received waypoint %i at %f,%f",size,wp.x,wp.y);
 }
 
 // std::vector<gnc_WP> func_wplist() //Create a separate function for a list of waypoints
@@ -144,10 +146,10 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "gnc_node");
   ros::NodeHandle gnc_node("~");
   init_publisher_subscriber(gnc_node);
-  wplist_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/goal", 10, nav_wp);
+  wplist_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/goal", 10, wp_cb);
   error_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/pos_error",10, error_cb);
   wp_pub = gnc_node.advertise<std_msgs::Bool>("/gnc/nav", 10);
-  // ros::Duration(10.0).sleep(); //May be required to ensure subscriber and publisher is ready
+  ros::Duration(10.0).sleep(); //May be required to ensure subscriber and publisher is ready
   
   /* Initiate Waypoint List
   */
