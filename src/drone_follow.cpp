@@ -117,7 +117,6 @@ int main(int argc, char **argv)
   wp_sub = gnc_node.subscribe<std_msgs::Bool>("/gnc/nav", 10,wp_cb);
   wp_nav.data = 1;
   bool navigate = 1;
-  ros::Duration(20.0).sleep(); //May be required to ensure subscriber and publisher is ready
 
   /* Initiate Formation Parameters
   */
@@ -129,12 +128,13 @@ int main(int argc, char **argv)
   /* Drone Startup Procedure
   */
   wait4connect();
+  ros::Duration(20.0).sleep(); //May be required to ensure subscriber and publisher is ready
   set_mode("GUIDED");  ros::Duration(4.0).sleep();
   takeoff(3);          ros::Duration(5.0).sleep();
 
   /*Begin Control and Navigation
   */
-  ros::Rate loop_rate(3);
+  ros::Rate loop_rate(5);
   while (ros::ok() && navigate) // && wp_nav
   {
     if (wp_nav.data)
