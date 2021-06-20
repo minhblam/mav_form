@@ -149,7 +149,7 @@ int main(int argc, char **argv)
   // wplist_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/goal", 10, wp_cb);
   error_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/pos_error",10, error_cb);
   wp_pub = gnc_node.advertise<std_msgs::Bool>("/gnc/nav", 10);
-  ros::Duration(10.0).sleep(); //May be required to ensure subscriber and publisher is ready
+  // ros::Duration(10.0).sleep(); //May be required to ensure subscriber and publisher is ready
   
   /* Initiate Waypoint List
   */
@@ -184,11 +184,11 @@ int main(int argc, char **argv)
       land();
       ros::Duration(3.0).sleep();
       wp_nav.data = 0;
+      wp_pub.publish(wp_nav);
       ROS_INFO("All waypoints reached, shutting down...");
     }
     ros::spinOnce(); //set to spinonce
     loop_rate.sleep();
   }
-  wp_pub.publish(wp_nav);
   return 0;
 }

@@ -106,7 +106,7 @@ struct gnc_WP
   float z;   // distance in z with respect to your reference frame
 };
 
-struct gnc_error
+struct gnc_setpoint
 {
   float x;   // distance in x with respect to your reference frame
   float y;   // distance in y with respect to your reference frame
@@ -248,46 +248,31 @@ int land()
 
 /*      Establish Connections
 */
-
-
-int ros_inumber(ros::NodeHandle controlnode)
+int ros_number(ros::NodeHandle controlnode)
 {
-  int ros_number;
+  int ros_num;
 	if (!controlnode.hasParam("number"))
 	{
 
 		// ROS_INFO("using default namespace");
 	}else{
-		controlnode.getParam("number", ros_number);
+		controlnode.getParam("number", ros_num);
 		// ROS_INFO("using namespace %s", ros_namespace.c_str());
 	}
-  return ros_number;
+  return ros_num;
 }
 
-// float ros_fnumber(ros::NodeHandle controlnode)
-// {
-//   float ros_number;
-// 	if (!controlnode.hasParam("number"))
-// 	{
-
-// 		// ROS_INFO("using default namespace");
-// 	}else{
-// 		controlnode.getParam("number", ros_number);
-// 		// ROS_INFO("using namespace %s", ros_namespace.c_str());
-// 	}
-//   return ros_number;
-// }
 
 float spawn_offset(std::string axis, ros::NodeHandle controlnode)
 {
   float d_spawn;
   if (!controlnode.hasParam((axis+"_offset").c_str()))
   {
-    ROS_INFO("Drone %i has no %s offset set, using 0",ros_inumber(controlnode),axis.c_str());
+    ROS_INFO("Drone %i has no %s offset set, using 0",ros_number(controlnode),axis.c_str());
     d_spawn = 0;
   }else{
     controlnode.getParam((axis+"_offset").c_str(),d_spawn);
-    ROS_INFO("Drone %i using %s offset of %f",ros_inumber(controlnode),axis.c_str(),d_spawn);
+    ROS_INFO("Drone %i using %s offset of %f",ros_number(controlnode),axis.c_str(),d_spawn);
   }
   return d_spawn;
 }
@@ -339,7 +324,7 @@ int init_publisher_subscriber(ros::NodeHandle controlnode)
   //Waypoint Position Publishing
   pose_pub = controlnode.advertise<geometry_msgs::PoseStamped>((ros_namespace + "/mavros/setpoint_position/local").c_str(), 10); // For Built in setpoint WP control
   //Position Subscribing
-  pose_sub = controlnode.subscribe<nav_msgs::Odometry>((ros_namespace + "/mavros/global_position/local").c_str(), 10, pose_cb);// add unique callback
+  pose_sub = controlnode.subscribe<nav_msgs::Odometry>((ros_namespace + "/mavros/global_position/local").c_str(), 10, pose_cb);
   //Velocity Publishing
   twist_pub = controlnode.advertise<geometry_msgs::TwistStamped>((ros_namespace + "/mavros/setpoint_velocity/cmd_vel").c_str(), 10);
   //Velocity Subscribing
