@@ -52,13 +52,17 @@ int main(int argc, char **argv)
   wait4connect();
   set_mode("GUIDED");
   takeoff(3);
-  ros::Rate loop_rate(3);
+  ros::Rate loop_rate(0.5);
   ros::Duration(12.0).sleep();
 
   while (ros::ok())
   {
     cmd_twist.twist.angular.z = 0.1;
+    // cmd_twist.twist.linear.x = 0.3;
     twist_pub.publish(cmd_twist);
+    // ros::Duration(2.0).sleep();
+    // cmd_twist.twist.linear.x = -0.3;
+    // twist_pub.publish(cmd_twist);
     ros::spinOnce(); //set to spinonce
     loop_rate.sleep();
   }

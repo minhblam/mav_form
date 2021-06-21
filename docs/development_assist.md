@@ -29,10 +29,34 @@ Run the guidance program (example)
 
 ```
 roslaunch mav_form 1d_test.launch
-roslaunch mav_form 2d_test.launch
-roslaunch mav_form 3d_test.launch
+roslaunch mav_form 2d_fly_pid.launch
+roslaunch mav_form 2d_fly_pid.launch
 ```
 ---
+
+## Tuning the PID Controller(s)
+Add the following line to the final launch file that runs the mission:
+```
+<node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" />
+```
+This will allow a live reconfiguration of the Kp, Ki and Kd values. The new values will need to be manually updated in the launch file.
+
+There are various other values inside the source code which are not linked to launch file parameters.
+Within drone_lead.cpp:
+```
+float upper_limit = 1;
+float yaw_limit = 0.4;
+cmd_twist.twist.linear.z = (wp_in[n].z - d_pose.pose.pose.position.z) * 0.2
+move(0.3);
+takeoff(3);
+```
+Within drone_follow.cpp:
+```
+cmd_twist.twist.angular.z = ::atan2(::sin(yaw_error),::cos(yaw_error)) * 0.6;
+float xoff = 2;
+takeoff(3);
+```
+
 ## Bashrc
 Open `~/.bashrc` for editing:
 ```
@@ -62,6 +86,7 @@ cd ~/mav_ws
 catkin build
 source ~/.bashrc
 ```
+You do not need to rebuild the workspace if launch files are changed.
 
 ## New control files
 

@@ -6,9 +6,9 @@
 
 #include <std_msgs/Float64.h>
 
-// #include <geometry_msgs/Point.h>
-// ros::Publisher error_pub;
-// geometry_msgs::Point error_point;
+#include <geometry_msgs/Point.h>
+ros::Publisher error_pub;
+geometry_msgs::Point error_point;
 
 ros::Subscriber wp_sub;
 std_msgs::Bool wp_nav;
@@ -55,7 +55,7 @@ void wp_cb (const std_msgs::Bool::ConstPtr &msg)
 }
 
 
-void setpoint_form(float xoff, float spawnx, float spawny, int number)
+void setpoint_form(float xoff, float offset_x_spawn, float offset_y_spawn, int number)
 {
   //ROS NED Frame
   float x;
@@ -82,38 +82,40 @@ void setpoint_form(float xoff, float spawnx, float spawny, int number)
 
   x = abs(sin(l_heading)*x_off);
   y = abs(cos(l_heading)*x_off);
-  // top left formation conflict WHY?? 3 moves to 2's position
 
   if(number % 2==0) //If even
   {
     if (l_heading > 0 && l_heading <M_PI)
     {
-      xf.data = lead_pose.pose.pose.position.x + spawny - x;
+      xf.data = lead_pose.pose.pose.position.x + offset_y_spawn - x;
     }else{
-      xf.data = lead_pose.pose.pose.position.x + spawny + x;
+      xf.data = lead_pose.pose.pose.position.x + offset_y_spawn + x;
     }
     if (l_heading <= M_PI/2 && l_heading >= -M_PI/2)
     {
-      yf.data = lead_pose.pose.pose.position.y - spawnx + y;
+      yf.data = lead_pose.pose.pose.position.y - offset_x_spawn + y;
     }else{
-      yf.data = lead_pose.pose.pose.position.y - spawnx - y;
+      yf.data = lead_pose.pose.pose.position.y - offset_x_spawn - y;
     }
   }else{ //else odd
     if (l_heading <= M_PI/2 && l_heading >= -M_PI/2)
     {
-      xf.data = lead_pose.pose.pose.position.x + spawny + x;
+      xf.data = lead_pose.pose.pose.position.x + offset_y_spawn + x;
     }else{
-      xf.data = lead_pose.pose.pose.position.x + spawny - x;
+      xf.data = lead_pose.pose.pose.position.x + offset_y_spawn - x;
     }
     if (l_heading > 0 && l_heading <M_PI)
     {
-      yf.data = lead_pose.pose.pose.position.y - spawnx - y;
+      yf.data = lead_pose.pose.pose.position.y - offset_x_spawn - y;
     }else{
-      yf.data = lead_pose.pose.pose.position.y - spawnx + y;
+      yf.data = lead_pose.pose.pose.position.y - offset_x_spawn + y;
     }
   }
 
-  zf.data = lead_pose.pose.pose.position.z; // Add numbers here to offset position
+  zf.data = lead_pose.pose.pose.position.z;       // Add numbers here to offset position
+  error_point.x = abs(xf.data - d_pos_x.data);
+  error_point.y = abs(yf.data - d_pos_y.data);
+  error_point.z = abs(zf.data - d_pos_z.data);
 
   //Publish Setpoint
   pidx_pub.publish(xf);
@@ -123,6 +125,8 @@ void setpoint_form(float xoff, float spawnx, float spawny, int number)
   pidx_pos_pub.publish(d_pos_x);
   pidy_pos_pub.publish(d_pos_y);
   pidz_pos_pub.publish(d_pos_z);
+
+  error_pub.publish(error_point);
   
   // if (ros_inumber(gnc_node) == 3)
   // {
@@ -142,7 +146,7 @@ void set_position()
 
   //Publish Control Inputs
   twist_pub.publish(cmd_twist);
-  ROS_INFO("Drone Velocity inputs (%f,%f,%f)",cmd_twist.twist.linear.x,cmd_twist.twist.linear.y,cmd_twist.twist.linear.z);
+  // ROS_INFO("Drone Velocity inputs (%f,%f,%f)",cmd_twist.twist.linear.x,cmd_twist.twist.linear.y,cmd_twist.twist.linear.z);
 }
 
 int init_pid_follow(ros::NodeHandle controlnode)
@@ -171,6 +175,7 @@ int init_pid_follow(ros::NodeHandle controlnode)
   return 0;
 }
 
+
 int main(int argc, char **argv)
 {
   /* Establish Publisher and Subscribers
@@ -179,8 +184,8 @@ int main(int argc, char **argv)
   ros::NodeHandle gnc_node("~");
   init_publisher_subscriber(gnc_node);
   init_leader_subscriber(gnc_node);
-  init_pid_follow(gnc_node);
-  // error_pub = gnc_node.advertise<geometry_msgs::Point>("/gnc/pos_error",10);
+  
+  error_pub = gnc_node.advertise<geometry_msgs::Point>("/gnc/pos_error",10);
   wp_sub = gnc_node.subscribe<std_msgs::Bool>("/gnc/nav",10,wp_cb);
   wp_nav.data = 1;
   bool navigate = 1;
@@ -189,24 +194,24 @@ int main(int argc, char **argv)
   */
   int number = ros_number(gnc_node);
   float xoff = 2; //metres
-  float spawnx = spawn_offset("x",gnc_node);
-  float spawny = spawn_offset("y",gnc_node);
-
+  float offset_x_spawn = spawn_offset("x",gnc_node);
+  float offset_y_spawn = spawn_offset("y",gnc_node);
+  init_pid_follow(gnc_node);
   /* Drone Startup Procedure
   */
   wait4connect();
-  ros::Duration(20.0).sleep(); //May be required to ensure subscriber and publisher is ready
+  // ros::Duration(20.0).sleep(); //May be required to ensure subscriber and publisher is ready
   set_mode("GUIDED");  ros::Duration(4.0).sleep();
   takeoff(3);          ros::Duration(5.0).sleep();
 
   /*Begin Control and Navigation
   */
-  ros::Rate loop_rate(5);
+  ros::Rate loop_rate(10);
   while (ros::ok() && navigate) // && wp_nav
   {
     if (wp_nav.data)
     {
-      setpoint_form(xoff,spawnx,spawny,number);
+      setpoint_form(xoff,offset_x_spawn,offset_y_spawn,number);
       set_position();
     }else{
       land();

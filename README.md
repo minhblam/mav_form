@@ -16,18 +16,18 @@ Simulation workspace foundation was based from [Intelligent-Quads](https://githu
 ---
 
 ## Software Installation
-[1. Installing Ardupilot and MAVProxy](docs/installing_ardupilot_mavproxy.md)
+[1. Installing Ardupilot and MAVProxy](docs/1_installing_ardupilot_mavproxy.md)
 
-[2. Installing Gazebo and ArduPilot Plugins](docs/installing_gazebo_ardupilotplugin.md)
+[2. Installing Gazebo and ArduPilot Plugins](docs/2_installing_gazebo_ardupilotplugin.md)
 
-[3. Installing ROS and MAVROS](docs/installing_ros.md)
+[3. Installing ROS and MAVROS](docs/3_installing_ros.md)
 
-## Modifying ArduPilot for simulation
-As multiple instances of the same drone are used for the SITL simulation, duplicates will need to be created which have been detailed in another page:
-
-[Editing ArduPilot Package](docs/installing_ros.md##7.-Editing-ArduPilot-Package)
+[4. Installing main packages](docs/4_installing_mainpackages.md)
 
 ---
+
+## How to run the simulation
+[Development Documentation](docs/development_assist.md)
 
 ## Connecting multiple Bebops (Deprecated)
 [Configuring the Bebop 2](docs/connect_bebop)
@@ -39,6 +39,8 @@ As multiple instances of the same drone are used for the SITL simulation, duplic
 [MAVROS ROS Documentation](http://wiki.ros.org/mavros)
 
 [GNC API Documentation](docs/GNC_functions_documentation.md)
+
+[ROS PID Node Package](http://wiki.ros.org/pid)
 
 ## References 
 http://ardupilot.org/copter/index.html

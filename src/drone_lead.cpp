@@ -7,6 +7,7 @@
 #include <geometry_msgs/Point.h>
 ros::Subscriber error_sub;
 geometry_msgs::Point error_point;
+float avg_error = 0;
 
 int n = 0; //Waypoint Progression
 std::vector<gnc_WP> wp_in;
@@ -20,6 +21,13 @@ std_msgs::Bool wp_nav;
 void error_cb (const geometry_msgs::Point::ConstPtr &msg)
 {
   error_point = *msg;
+  float upper_limit = 1;                            //Need to add this as parameter
+  avg_error = (error_point.x + error_point.y)/2;    //Ignore vertical z error for now
+  if (avg_error > upper_limit)
+  {
+    avg_error = upper_limit;
+  }
+  // ROS_INFO("Average position error %.2f",avg_error);
 }
 
 // void wp_cb (const geometry_msgs::Point::ConstPtr &msg)
@@ -41,43 +49,48 @@ std::vector<gnc_WP> func_wplist() //Create a separate function for a list of way
   wp_list.y = 0;
   wp_list.z = 3;
   wp_in.push_back(wp_list);
-  wp_list.x = 3; //1
-  wp_list.y = 1;
+  wp_list.x = 10; //1
+  wp_list.y = 2;
   wp_list.z = 3;
   wp_in.push_back(wp_list);
-  wp_list.x = 9; //2
-  wp_list.y = 3;
+  wp_list.x = 10; //2
+  wp_list.y = 12;
   wp_list.z = 3;
   wp_in.push_back(wp_list);
-  wp_list.x = 9; //3
+  wp_list.x = 2; //3
   wp_list.y = 5;
   wp_list.z = 3;
   wp_in.push_back(wp_list);
   wp_list.x = 9; //4
-  wp_list.y = 7;
+  wp_list.y = 12;
   wp_list.z = 3;
   wp_in.push_back(wp_list);
   wp_list.x = 5; //5
   wp_list.y = 9;
   wp_list.z = 3;
   wp_in.push_back(wp_list);
+  wp_list.x = 0; //5
+  wp_list.y = 0;
+  wp_list.z = 10;
+  wp_in.push_back(wp_list);
   return wp_in;
 }
 
 
-void forward (float v_des) //Needs to add error from formation to slow speed as required
+void forward (float vel_desired) //Needs to add error from formation to slow speed as required
 {
   float vy;
   float vx;
+  float v_actual = vel_desired*(1 - avg_error);
 
   if (d_heading > -M_PI/2 && d_heading < M_PI/2) //from -1.57 to 1.57
     {
-      vy = abs(sin(d_heading))*v_des;
-      vx = abs(cos(d_heading))*v_des;
+      vy = abs(sin(d_heading))*v_actual;
+      vx = abs(cos(d_heading))*v_actual;
       cmd_twist.twist.linear.x = vx;
     }else{
-      vy = abs(cos(d_heading-M_PI/2))*v_des;
-      vx = abs(sin(d_heading-M_PI/2))*v_des;
+      vy = abs(cos(d_heading-M_PI/2))*v_actual;
+      vx = abs(sin(d_heading-M_PI/2))*v_actual;
       cmd_twist.twist.linear.x = -vx;
     }
 
@@ -89,7 +102,7 @@ void forward (float v_des) //Needs to add error from formation to slow speed as 
     }
 }
 
-void move(float v_des)
+void move(float vel_desired)
 {
   float des_angle;
   if (wp_in[n].y > d_pose.pose.pose.position.y)
@@ -112,11 +125,22 @@ void move(float v_des)
   float error = -(d_heading - des_angle);
   // ROS_INFO("Desired angle: %.2f",des_angle);
   float angle_e = ::atan2(::sin(error),::cos(error));
-  //Do something to v_des to reduce speed if error gets too high by using form_e(error_point)
-  cmd_twist.twist.angular.z = angle_e*0.7;                                      //Yaw Control positive is left
-  forward(v_des);                                                               //Move forward function in body frame
-  cmd_twist.twist.linear.z = (wp_in[n].z - d_pose.pose.pose.position.z) * 0.2;  //Vertical control
+
+  forward(vel_desired);                                                          //Move forward function in body frame
+
+  cmd_twist.twist.angular.z = angle_e*0.7*(1 - (avg_error));                    //Yaw Control positive is left
+  float yaw_limit = 0.4;                                                        //Need to add this as parameter
+  if (angle_e*0.7*(1 - (avg_error)) > yaw_limit)
+  {
+    cmd_twist.twist.angular.z = yaw_limit;
+  }else if ((angle_e*0.7*(1 - (avg_error))) < -yaw_limit)
+  {
+    cmd_twist.twist.angular.z = -yaw_limit;
+  }
+
+  cmd_twist.twist.linear.z = (wp_in[n].z - d_pose.pose.pose.position.z) * 0.2;   //Vertical control
   twist_pub.publish(cmd_twist);
+  ROS_INFO("Yaw Command: %.2f",cmd_twist.twist.angular.z);
 }
 
 bool check_waypoint_reached(float pos_tolerance = 0.3)

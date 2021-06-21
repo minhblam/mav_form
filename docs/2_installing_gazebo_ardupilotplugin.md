@@ -73,4 +73,4 @@ sim_vehicle.py -v ArduCopter -f gazebo-iris --console
 
 The new window may be closed and return to the original terminal to continue.
 
-## [3. Installing ROS and MAVROS](docs/installing_ros.md)
+## [3. Installing ROS and MAVROS](docs/3_installing_ros.md)
