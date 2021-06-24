@@ -1,0 +1,30 @@
+<launch>
+	
+	<node pkg="mav_form" type="square" name="lead" output="screen" ns="/drone1">
+		<param name="namespace" value="/drone1"/>
+		<param name="use_sim_time"  value="true" />
+	</node>		
+	
+
+
+	
+	<node pkg="mav_form" type="square" name="follow" output="screen" ns="/drone2">
+		<!-- pkg = folder, type = .cpp name  output =???? ns = node name/namespace -->
+		<param name="namespace" value="/drone2"/>
+		<param name="use_sim_time"  value="true" />
+	</node>
+	
+
+	
+	<node pkg="mav_form" type="square" name="follow" output="screen" ns="/drone3">
+		<!-- pkg = folder, type = .cpp name  output =???? ns = node name/namespace -->
+		<param name="namespace" value="/drone3"/>
+		<param name="use_sim_time"  value="true" />
+	</node>
+	
+
+	<node pkg="mav_form" type="nav_manager" name="navigation" output="screen" ns="/nav_manager">
+			<param name="use_sim_time"  value="true" />
+	</node>	
+
+</launch>

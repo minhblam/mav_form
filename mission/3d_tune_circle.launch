@@ -1,6 +1,6 @@
 <launch>
 	<group>
-		<node pkg="mav_form" type="drone_lead_linear" name="lead" output="screen" ns="/drone1">
+		<node pkg="mav_form" type="drone_lead_angular" name="lead" output="screen" ns="/drone1">
 			<param name="namespace" value="/drone1"/>
 			<param name="use_sim_time"  value="true" />
 			<param name="number" value="1" />
@@ -9,8 +9,9 @@
 
 	<node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
     args=" /drone2/pidx/state /drone2/pidx/setpoint" />
+	<!-- /drone2/pidy/control -->
 
-	<!-- <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" /> -->
+	<node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" />
 
 	<group>
 		<node pkg="mav_form" type="drone_follow" name="follow" output="screen" ns="/drone2">

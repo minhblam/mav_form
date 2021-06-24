@@ -209,6 +209,12 @@ target_link_libraries(drone_follow ${catkin_LIBRARIES})
 add_executable(drone_lead src/drone_lead.cpp)
 target_link_libraries(drone_lead ${catkin_LIBRARIES})
 
+add_executable(drone_lead_angular src/drone_lead_angular.cpp)
+target_link_libraries(drone_lead_angular ${catkin_LIBRARIES})
+
 add_executable(drone_lead_linear src/drone_lead_linear.cpp)
 target_link_libraries(drone_lead_linear ${catkin_LIBRARIES})
+
+add_executable(square src/square.cpp)
+target_link_libraries(square ${catkin_LIBRARIES})
 

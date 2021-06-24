@@ -39,7 +39,7 @@ void forward (float vel_desired)
 {
   float vy;
   float vx;
-  float v_actual = vel_desired*(1 - avg_error*0.5);
+  float v_actual = vel_desired*(1 - avg_error*0.8);
 
   if (d_heading > -M_PI/2 && d_heading < M_PI/2) //from -1.57 to 1.57
     {
@@ -85,13 +85,13 @@ void move(float vel_desired)
   float angle_e = ::atan2(::sin(error),::cos(error));
 
   forward(vel_desired);                                                   //Move forward function in body frame
-  float yaw_limit = 0.4;                                                  //Need to add this as parameter
-  cmd_twist.twist.angular.z = angle_e * 0.7 * (1 - (avg_error));          //Yaw Control positive is left
+  float yaw_limit = 0.3;                                                  //Need to add this as parameter
+  cmd_twist.twist.angular.z = angle_e * 0.7 * (1 - (avg_error*0.8));          //Yaw Control positive is left
 
-  if (angle_e*0.7*(1 - (avg_error)) > yaw_limit)
+  if (angle_e*0.7*(1 - (avg_error*0.8)) > yaw_limit)
   {
     cmd_twist.twist.angular.z = yaw_limit;
-  }else if ((angle_e*0.7*(1 - (avg_error))) < -yaw_limit)
+  }else if ((angle_e*0.7*(1 - (avg_error*0.8))) < -yaw_limit)
   {
     cmd_twist.twist.angular.z = -yaw_limit;
   }
@@ -117,7 +117,6 @@ bool check_waypoint_reached(float pos_tolerance = 0.3)
     return 0;
   }
 }
-
 
 
 int main(int argc, char **argv)
@@ -150,7 +149,7 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(3);
   while (ros::ok() && wp_nav.data)
   {
-    if (n < wp_size-1)
+    if (n < wp_size)
     {
       move(1); //Desired speed
       if (check_waypoint_reached(0.3))

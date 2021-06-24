@@ -113,7 +113,7 @@ void setpoint_form(float xoff, float offset_x_spawn, float offset_y_spawn, int n
     }
   }
 
-  zf.data = lead_pose.pose.pose.position.z;       // Add numbers here to offset position
+  zf.data = lead_pose.pose.pose.position.z+0.36;       // Add numbers here to offset position
   error_point.x = abs(xf.data - d_pos_x.data);
   error_point.y = abs(yf.data - d_pos_y.data);
   error_point.z = abs(zf.data - d_pos_z.data);

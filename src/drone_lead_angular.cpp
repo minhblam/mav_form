@@ -54,7 +54,7 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(3);
   while (ros::ok())
   {
-    move(0,0.5,0);
+    move(0,0, 0.3);
     twist_pub.publish(cmd_twist);
     ros::spinOnce();
     loop_rate.sleep();
