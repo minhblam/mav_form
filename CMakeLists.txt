@@ -209,6 +209,6 @@ target_link_libraries(drone_follow ${catkin_LIBRARIES})
 add_executable(drone_lead src/drone_lead.cpp)
 target_link_libraries(drone_lead ${catkin_LIBRARIES})
 
-add_executable(drone_lead_nonav src/drone_lead_nonav.cpp)
-target_link_libraries(drone_lead_nonav ${catkin_LIBRARIES})
+add_executable(drone_lead_linear src/drone_lead_linear.cpp)
+target_link_libraries(drone_lead_linear ${catkin_LIBRARIES})
 

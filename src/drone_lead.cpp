@@ -3,7 +3,6 @@
   Navigation is set as direct yaw to each waypoint.
 */
 #include <gnc_functions.hpp>
-
 #include <geometry_msgs/PoseArray.h>
 
 ros::Subscriber error_sub;
@@ -15,10 +14,7 @@ std_msgs::Bool wp_nav;
 
 ros::Subscriber wp_sub;
 geometry_msgs::PoseArray wp_subpose;    //Original Waypoint Array
-
-
 int n = 0; //Waypoint Progression
-
 
 void error_cb (const geometry_msgs::Point::ConstPtr &msg)
 {
@@ -34,16 +30,16 @@ void error_cb (const geometry_msgs::Point::ConstPtr &msg)
 
 void nav_wp(const geometry_msgs::PoseArray::ConstPtr &msg)
 {
-  wp_subpose = *msg; //wp_subpose
+  wp_subpose = *msg;
   int size = wp_subpose.poses.size();
   ROS_INFO("Received %i Waypoints",size);
 }
 
-void forward (float vel_desired) //Needs to add error from formation to slow speed as required
+void forward (float vel_desired)
 {
   float vy;
   float vx;
-  float v_actual = vel_desired*(1 - avg_error);
+  float v_actual = vel_desired*(1 - avg_error*0.5);
 
   if (d_heading > -M_PI/2 && d_heading < M_PI/2) //from -1.57 to 1.57
     {
@@ -88,10 +84,10 @@ void move(float vel_desired)
   // ROS_INFO("Desired angle: %.2f",des_angle);
   float angle_e = ::atan2(::sin(error),::cos(error));
 
-  forward(vel_desired);                                                          //Move forward function in body frame
+  forward(vel_desired);                                                   //Move forward function in body frame
+  float yaw_limit = 0.4;                                                  //Need to add this as parameter
+  cmd_twist.twist.angular.z = angle_e * 0.7 * (1 - (avg_error));          //Yaw Control positive is left
 
-  cmd_twist.twist.angular.z = angle_e*0.7*(1 - (avg_error));                    //Yaw Control positive is left
-  float yaw_limit = 0.8;                                                        //Need to add this as parameter
   if (angle_e*0.7*(1 - (avg_error)) > yaw_limit)
   {
     cmd_twist.twist.angular.z = yaw_limit;
@@ -131,21 +127,20 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "gnc_node");
   ros::NodeHandle gnc_node("~");
   init_publisher_subscriber(gnc_node);
-  // wplist_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/goal", 10, wp_cb);
   wp_sub = gnc_node.subscribe<geometry_msgs::PoseArray>("/gnc/goal", 10, nav_wp);
   ROS_INFO("Subscribed to goal");
   error_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/pos_error",10, error_cb);
   ROS_INFO("Subscribed to error");
   wp_pub = gnc_node.advertise<std_msgs::Bool>("/gnc/nav", 10);
   ROS_INFO("Subscribed to nav");
-  ros::Duration(10.0).sleep(); //May be required to ensure subscriber and publisher is ready
+  // ros::Duration(10.0).sleep(); //May be required to ensure subscriber and publisher is ready
   
   /* Drone Startup Procedure
   */
   wait4connect();
   set_mode("GUIDED");  ros::Duration(4.0).sleep();
-  takeoff(3);          ros::Duration(5.0).sleep(); //Make this extra long just for follower to move to position
-  wp_nav.data = 1; //This may be able to be used as a topic like nav_complete.publish(navigate) where std_msgs::Bool navigate as a global.
+  takeoff(3);          ros::Duration(5.0).sleep();
+  wp_nav.data = 1;
   wp_pub.publish(wp_nav);
 
   /*Begin Control and Navigation
@@ -155,11 +150,9 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(3);
   while (ros::ok() && wp_nav.data)
   {
-    // update_wp();
     if (n < wp_size-1)
     {
-      // ROS_INFO("%i Waypoint Processed",wp_size);
-      move(0.3); //Desired speed
+      move(1); //Desired speed
       if (check_waypoint_reached(0.3))
       {
         n++;
@@ -172,7 +165,7 @@ int main(int argc, char **argv)
       wp_pub.publish(wp_nav);
       ROS_INFO("All waypoints reached, shutting down...");
     }
-    ros::spinOnce(); //set to spinonce
+    ros::spinOnce();
     loop_rate.sleep();
   }
   return 0;

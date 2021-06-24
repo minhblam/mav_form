@@ -31,6 +31,7 @@ ros::Publisher pidz_pos_pub;
 std_msgs::Float64 pidx;
 std_msgs::Float64 pidy;
 std_msgs::Float64 pidz;
+
 /* PID Functions End
 */
 
@@ -98,13 +99,13 @@ void setpoint_form(float xoff, float offset_x_spawn, float offset_y_spawn, int n
       yf.data = lead_pose.pose.pose.position.y - offset_x_spawn - y;
     }
   }else{ //else odd
-    if (l_heading <= M_PI/2 && l_heading >= -M_PI/2)
+    if (l_heading > 0 && l_heading <M_PI)
     {
       xf.data = lead_pose.pose.pose.position.x + offset_y_spawn + x;
     }else{
       xf.data = lead_pose.pose.pose.position.x + offset_y_spawn - x;
     }
-    if (l_heading > 0 && l_heading <M_PI)
+    if (l_heading <= M_PI/2 && l_heading >= -M_PI/2)
     {
       yf.data = lead_pose.pose.pose.position.y - offset_x_spawn - y;
     }else{
@@ -194,12 +195,12 @@ int main(int argc, char **argv)
   */
   wait4connect();
   // ros::Duration(20.0).sleep(); //May be required to ensure subscriber and publisher is ready
-  set_mode("GUIDED");  ros::Duration(4.0).sleep();
+  set_mode("GUIDED");  //ros::Duration(4.0).sleep();
   takeoff(3);          ros::Duration(5.0).sleep();
 
   /*Begin Control and Navigation
   */
-  ros::Rate loop_rate(10);
+  ros::Rate loop_rate(20);
   while (ros::ok() && navigate) // && wp_nav
   {
     if (wp_nav.data)

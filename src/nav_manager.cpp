@@ -10,6 +10,7 @@ geometry_msgs::Pose wp_pose;
 ros::Publisher wp_pub;
 geometry_msgs::Point wplist;
 
+
 std::vector<gnc_WP> func_wplist() //Create a separate function for a list of waypoints
 {
 	std::vector<gnc_WP> wp_in;
@@ -18,24 +19,24 @@ std::vector<gnc_WP> func_wplist() //Create a separate function for a list of way
 	wp_list.y = 0;
 	wp_list.z = 5;
 	wp_in.push_back(wp_list);
-	wp_list.x = 3;
-	wp_list.y = 1;
+	wp_list.x = 10;
+	wp_list.y = 0;
 	wp_list.z = 5;
 	wp_in.push_back(wp_list);
-	wp_list.x = 9;
-	wp_list.y = 3;
+	wp_list.x = 10;
+	wp_list.y = 10;
 	wp_list.z = 5;
 	wp_in.push_back(wp_list);
-	wp_list.x = 9;
-	wp_list.y = 5;
+	wp_list.x = 0;
+	wp_list.y = 10;
 	wp_list.z = 5;
 	wp_in.push_back(wp_list);
-	wp_list.x = 9;
-	wp_list.y = 7;
-	wp_list.z = 3;
+	wp_list.x = 0;
+	wp_list.y = 0;
+	wp_list.z = 10;
 	wp_in.push_back(wp_list);
-	wp_list.x = 5;
-	wp_list.y = 9;
+	wp_list.x = -10;
+	wp_list.y = -10;
 	wp_list.z = 5;
 	wp_in.push_back(wp_list);
 	return wp_in;
@@ -68,7 +69,7 @@ int main(int argc, char **argv)
 	push_wp(wp_in);
 	int size = wp_in.size();
 	ROS_INFO("Published %i waypoints",size);
-	
+
 	ros::spin();
 	return 0;
 }
