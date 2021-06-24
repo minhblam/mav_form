@@ -127,12 +127,6 @@ void setpoint_form(float xoff, float offset_x_spawn, float offset_y_spawn, int n
   pidz_pos_pub.publish(d_pos_z);
 
   error_pub.publish(error_point);
-  
-  // if (ros_inumber(gnc_node) == 3)
-  // {
-  //   ROS_INFO("OFFSET l_head:%.3f space: %.1f Drone %.1f    x_off: %.2f and y_off: %.2f     L_POS lx: %.2f ly: %.2f     DES xf: %.2f yf: %.2f    D_POS x: %.2f y: %.2f    ERR: xe: %.2f ye: %.2f",l_heading,x_off,number_float,x,y,lead_pose.pose.pose.position.x,lead_pose.pose.pose.position.y,xf,yf,d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_error.x,d_error.y);
-  //   ROS_INFO("Heading Desired z:%f Desired x:%f y:%f z:%f   Actual x:%f y:%f z:%f",l_heading,xf,yf,zf,d_pose.pose.pose.position.x,d_pose.pose.pose.position.y,d_pose.pose.pose.position.z);
-  // }
 }
 
 void set_position()
@@ -174,7 +168,6 @@ int init_pid_follow(ros::NodeHandle controlnode)
   pidz_pos_pub = controlnode.advertise<std_msgs::Float64>((ros_namespace + "/pidz/state").c_str(), 10);
   return 0;
 }
-
 
 int main(int argc, char **argv)
 {

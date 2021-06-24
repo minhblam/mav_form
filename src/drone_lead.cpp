@@ -4,19 +4,21 @@
 */
 #include <gnc_functions.hpp>
 
-#include <geometry_msgs/Point.h>
+#include <geometry_msgs/PoseArray.h>
+
 ros::Subscriber error_sub;
 geometry_msgs::Point error_point;
 float avg_error = 0;
 
-int n = 0; //Waypoint Progression
-std::vector<gnc_WP> wp_in;
-
 ros::Publisher wp_pub;
 std_msgs::Bool wp_nav;
 
-// ros::Subscriber wplist_sub;
-// geometry_msgs::Point wplist;
+ros::Subscriber wp_sub;
+geometry_msgs::PoseArray wp_subpose;    //Original Waypoint Array
+
+
+int n = 0; //Waypoint Progression
+
 
 void error_cb (const geometry_msgs::Point::ConstPtr &msg)
 {
@@ -30,52 +32,12 @@ void error_cb (const geometry_msgs::Point::ConstPtr &msg)
   // ROS_INFO("Average position error %.2f",avg_error);
 }
 
-// void wp_cb (const geometry_msgs::Point::ConstPtr &msg)
-// {
-//   wplist = *msg;
-//   gnc_WP wp;
-//   wp.x = wplist.x; //0
-//   wp.y = wplist.y;
-//   wp.z = wplist.z;
-//   wp_in.push_back(wp);
-//   int size = wp_in.size();
-//   ROS_INFO("received waypoint %i at %f,%f",size,wp.x,wp.y);
-// }
-
-std::vector<gnc_WP> func_wplist() //Create a separate function for a list of waypoints
+void nav_wp(const geometry_msgs::PoseArray::ConstPtr &msg)
 {
-  gnc_WP wp_list;
-  wp_list.x = 0; //0
-  wp_list.y = 0;
-  wp_list.z = 3;
-  wp_in.push_back(wp_list);
-  wp_list.x = 10; //1
-  wp_list.y = 2;
-  wp_list.z = 3;
-  wp_in.push_back(wp_list);
-  wp_list.x = 10; //2
-  wp_list.y = 12;
-  wp_list.z = 3;
-  wp_in.push_back(wp_list);
-  wp_list.x = 2; //3
-  wp_list.y = 5;
-  wp_list.z = 3;
-  wp_in.push_back(wp_list);
-  wp_list.x = 9; //4
-  wp_list.y = 12;
-  wp_list.z = 3;
-  wp_in.push_back(wp_list);
-  wp_list.x = 5; //5
-  wp_list.y = 9;
-  wp_list.z = 3;
-  wp_in.push_back(wp_list);
-  wp_list.x = 0; //5
-  wp_list.y = 0;
-  wp_list.z = 10;
-  wp_in.push_back(wp_list);
-  return wp_in;
+  wp_subpose = *msg; //wp_subpose
+  int size = wp_subpose.poses.size();
+  ROS_INFO("Received %i Waypoints",size);
 }
-
 
 void forward (float vel_desired) //Needs to add error from formation to slow speed as required
 {
@@ -105,20 +67,20 @@ void forward (float vel_desired) //Needs to add error from formation to slow spe
 void move(float vel_desired)
 {
   float des_angle;
-  if (wp_in[n].y > d_pose.pose.pose.position.y)
+  if (wp_subpose.poses[n].position.y > d_pose.pose.pose.position.y)
   {
-    if (wp_in[n].x > d_pose.pose.pose.position.x)
+    if (wp_subpose.poses[n].position.x > d_pose.pose.pose.position.x)
     {
-      des_angle = atan2(abs(d_pose.pose.pose.position.y - wp_in[n].y), abs(d_pose.pose.pose.position.x - wp_in[n].x));
+      des_angle = atan2(abs(d_pose.pose.pose.position.y - wp_subpose.poses[n].position.y), abs(d_pose.pose.pose.position.x - wp_subpose.poses[n].position.x));
     }else{
-      des_angle = atan2(abs(d_pose.pose.pose.position.x - wp_in[n].x), abs(d_pose.pose.pose.position.y - wp_in[n].y)) +M_PI/2;
+      des_angle = atan2(abs(d_pose.pose.pose.position.x - wp_subpose.poses[n].position.x), abs(d_pose.pose.pose.position.y - wp_subpose.poses[n].position.y)) +M_PI/2;
     }
   }else{
-    if (wp_in[n].x > d_pose.pose.pose.position.x)
+    if (wp_subpose.poses[n].position.x > d_pose.pose.pose.position.x)
     {
-      des_angle = -(atan2(abs(d_pose.pose.pose.position.y - wp_in[n].y), abs(d_pose.pose.pose.position.x - wp_in[n].x)));
+      des_angle = -(atan2(abs(d_pose.pose.pose.position.y - wp_subpose.poses[n].position.y), abs(d_pose.pose.pose.position.x - wp_subpose.poses[n].position.x)));
     }else{
-      des_angle = -(atan2(abs(d_pose.pose.pose.position.x - wp_in[n].x), abs(d_pose.pose.pose.position.y - wp_in[n].y)) +M_PI/2);
+      des_angle = -(atan2(abs(d_pose.pose.pose.position.x - wp_subpose.poses[n].position.x), abs(d_pose.pose.pose.position.y - wp_subpose.poses[n].position.y)) +M_PI/2);
     }
   }
 
@@ -129,7 +91,7 @@ void move(float vel_desired)
   forward(vel_desired);                                                          //Move forward function in body frame
 
   cmd_twist.twist.angular.z = angle_e*0.7*(1 - (avg_error));                    //Yaw Control positive is left
-  float yaw_limit = 0.4;                                                        //Need to add this as parameter
+  float yaw_limit = 0.8;                                                        //Need to add this as parameter
   if (angle_e*0.7*(1 - (avg_error)) > yaw_limit)
   {
     cmd_twist.twist.angular.z = yaw_limit;
@@ -138,16 +100,15 @@ void move(float vel_desired)
     cmd_twist.twist.angular.z = -yaw_limit;
   }
 
-  cmd_twist.twist.linear.z = (wp_in[n].z - d_pose.pose.pose.position.z) * 0.2;   //Vertical control
+  cmd_twist.twist.linear.z = (wp_subpose.poses[n].position.z - d_pose.pose.pose.position.z) * 0.2;   //Vertical control
   twist_pub.publish(cmd_twist);
-  ROS_INFO("Yaw Command: %.2f",cmd_twist.twist.angular.z);
+  // ROS_INFO("Yaw Command: %.2f",cmd_twist.twist.angular.z);
 }
 
 bool check_waypoint_reached(float pos_tolerance = 0.3)
 {
-  //check for correct position only in x and y (may add z)
-  float deltaX = abs(wp_in[n].x - d_pose.pose.pose.position.x);
-  float deltaY = abs(wp_in[n].y - d_pose.pose.pose.position.y);
+  float deltaX = abs(wp_subpose.poses[n].position.x - d_pose.pose.pose.position.x);
+  float deltaY = abs(wp_subpose.poses[n].position.y - d_pose.pose.pose.position.y);
   float deltaZ = 0; //abs(wp_in[n].z - d_pose.pose.pose.position.z);
   float dMag = sqrt(pow(deltaX, 2) + pow(deltaY, 2) + pow(deltaZ, 2));
 
@@ -171,15 +132,14 @@ int main(int argc, char **argv)
   ros::NodeHandle gnc_node("~");
   init_publisher_subscriber(gnc_node);
   // wplist_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/goal", 10, wp_cb);
+  wp_sub = gnc_node.subscribe<geometry_msgs::PoseArray>("/gnc/goal", 10, nav_wp);
+  ROS_INFO("Subscribed to goal");
   error_sub = gnc_node.subscribe<geometry_msgs::Point>("/gnc/pos_error",10, error_cb);
+  ROS_INFO("Subscribed to error");
   wp_pub = gnc_node.advertise<std_msgs::Bool>("/gnc/nav", 10);
-  // ros::Duration(10.0).sleep(); //May be required to ensure subscriber and publisher is ready
+  ROS_INFO("Subscribed to nav");
+  ros::Duration(10.0).sleep(); //May be required to ensure subscriber and publisher is ready
   
-  /* Initiate Waypoint List
-  */
-  wp_in = func_wplist();
-  int wp_size = wp_in.size();
-
   /* Drone Startup Procedure
   */
   wait4connect();
@@ -190,19 +150,20 @@ int main(int argc, char **argv)
 
   /*Begin Control and Navigation
   */
-  ROS_INFO("%i waypoints, starting with Waypoint %i (x:%f y:%f z:%f)", wp_size, n,wp_in[n].x, wp_in[n].y, wp_in[n].z);
-  
-
+  int wp_size = wp_subpose.poses.size();
+  ROS_INFO("Beginning Navigation to Waypoint %i (%.1f,%.1f,%.1f)",n,wp_subpose.poses[n].position.x,wp_subpose.poses[n].position.y,wp_subpose.poses[n].position.z);
   ros::Rate loop_rate(3);
   while (ros::ok() && wp_nav.data)
   {
-    if (n < wp_size)
+    // update_wp();
+    if (n < wp_size-1)
     {
+      // ROS_INFO("%i Waypoint Processed",wp_size);
       move(0.3); //Desired speed
       if (check_waypoint_reached(0.3))
       {
-        ROS_INFO("Waypoint Reached, moving to waypoint %i",n);
         n++;
+        ROS_INFO("Waypoint Reached, moving to Waypoint %i (%.1f,%.1f,%.1f)",n,wp_subpose.poses[n].position.x,wp_subpose.poses[n].position.y,wp_subpose.poses[n].position.z);
       }
     }else{
       land();
