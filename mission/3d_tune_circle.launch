@@ -1,0 +1,104 @@
+<launch>
+	<group>
+		<node pkg="mav_form" type="drone_lead_angular" name="lead" output="screen" ns="/drone1">
+			<param name="namespace" value="/drone1"/>
+			<param name="use_sim_time"  value="true" />
+			<param name="number" value="1" />
+		</node>		
+	</group>
+
+	<node name="rqt_plot" pkg="rqt_plot" type="rqt_plot"
+    args=" /drone2/pidx/state /drone2/pidx/setpoint" />
+	<!-- /drone2/pidy/control -->
+
+	<node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure" />
+
+	<group>
+		<node pkg="mav_form" type="drone_follow" name="follow" output="screen" ns="/drone2">
+			<!-- pkg = folder, type = .cpp name  output =???? ns = node name/namespace -->
+			<param name="namespace" value="/drone2"/>
+			<param name="use_sim_time"  value="true" />
+			<param name="number" value="2" />
+			<param name="x_offset" value="-5.0" />
+			<param name="y_offset" value ="0.0" />
+		</node>
+		<node pkg="pid" type="controller" name="drone2_pidx" output="screen" ns="/drone2/pidx" >
+			<param name="Kp" value="0.6" />
+			<param name="Ki" value="0.3" />
+			<param name="Kd" value="0.4" />
+			<param name="upper_limit" value="5" />
+			<param name="lower_limit" value="-5" />
+			<param name="windup_limit" value="5" />
+			<remap from="setpoint" to="/drone2/pidx/setpoint" />
+			<remap from="state" to="/drone2/pidx/state" />
+			<remap from="control_effort" to="/drone2/pidx/control" />
+		</node>
+		<node pkg="pid" type="controller" name="drone2_pidy" output="screen" ns="/drone2/pidy" >
+			<param name="Kp" value="0.6" />
+			<param name="Ki" value="0.3" />
+			<param name="Kd" value="0.4" />
+			<param name="upper_limit" value="5" />
+			<param name="lower_limit" value="-5" />
+			<param name="windup_limit" value="5" />
+			<remap from="setpoint" to="/drone2/pidy/setpoint" />
+			<remap from="state" to="/drone2/pidy/state" />
+			<remap from="control_effort" to="/drone2/pidy/control" />
+		</node>
+		<node pkg="pid" type="controller" name="drone2_pidz" output="screen" ns="/drone2/pidz" >
+			<param name="Kp" value="0.6" />
+			<param name="Ki" value="0.0" />
+			<param name="Kd" value="0.1" />
+			<param name="upper_limit" value="4" />
+			<param name="lower_limit" value="-4" />
+			<param name="windup_limit" value="4" />
+			<remap from="setpoint" to="/drone2/pidz/setpoint" />
+			<remap from="state" to="/drone2/pidz/state" />
+			<remap from="control_effort" to="/drone2/pidz/control" />
+		</node>
+	</group>
+
+	<group>
+		<node pkg="mav_form" type="drone_follow" name="follow" output="screen" ns="/drone3">
+			<!-- pkg = folder, type = .cpp name  output =???? ns = node name/namespace -->
+			<param name="namespace" value="/drone3"/>
+			<param name="use_sim_time"  value="true" />
+			<param name="number" value="3" />
+			<param name="x_offset" value="5.0" />
+			<param name="y_offset" value ="0.0" />
+		</node>
+		<node pkg="pid" type="controller" name="drone3_pidx" output="screen" ns="/drone3/pidx" >
+			<param name="Kp" value="0.6" />
+			<param name="Ki" value="0.3" />
+			<param name="Kd" value="0.4" />
+			<param name="upper_limit" value="5" />
+			<param name="lower_limit" value="-5" />
+			<param name="windup_limit" value="5" />
+			<remap from="setpoint" to="/drone3/pidx/setpoint" />
+			<remap from="state" to="/drone3/pidx/state" />
+			<remap from="control_effort" to="/drone3/pidx/control" />
+		</node>
+		<node pkg="pid" type="controller" name="drone3_pidy" output="screen" ns="/drone3/pidy" >
+			<param name="Kp" value="0.6" />
+			<param name="Ki" value="0.3" />
+			<param name="Kd" value="0.4" />
+			<param name="upper_limit" value="5" />
+			<param name="lower_limit" value="-5" />
+			<param name="windup_limit" value="5" />
+			<remap from="setpoint" to="/drone3/pidy/setpoint" />
+			<remap from="state" to="/drone3/pidy/state" />
+			<remap from="control_effort" to="/drone3/pidy/control" />
+		</node>
+		<node pkg="pid" type="controller" name="drone3_pidz" output="screen" ns="/drone3/pidz" >
+			<param name="Kp" value="0.6" />
+			<param name="Ki" value="0.0" />
+			<param name="Kd" value="0.1" />
+			<param name="upper_limit" value="4" />
+			<param name="lower_limit" value="-4" />
+			<param name="windup_limit" value="4" />
+			<remap from="setpoint" to="/drone3/pidz/setpoint" />
+			<remap from="state" to="/drone3/pidz/state" />
+			<remap from="control_effort" to="/drone3/pidz/control" />
+		</node>
+	</group>
+
+</launch>

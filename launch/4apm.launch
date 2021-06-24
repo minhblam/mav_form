@@ -22,6 +22,7 @@
 		<rosparam command="load" file="$(find mavros)/launch/apm_pluginlists.yaml" />
 		<rosparam command="load" file="$(find mavros)/launch/apm_config.yaml" />
 	</node>
+
 	<node pkg="mavros" type="mavros_node" name="mavros" required="false" clear_params="true" output="screen" respawn="true" ns="/drone3">
 		<param name="fcu_url" value="udp://127.0.0.1:14571@14575" />
 		<param name="gcs_url" value="" />
@@ -33,8 +34,9 @@
 		<rosparam command="load" file="$(find mavros)/launch/apm_pluginlists.yaml" />
 		<rosparam command="load" file="$(find mavros)/launch/apm_config.yaml" />
 	</node>
+
 	<node pkg="mavros" type="mavros_node" name="mavros" required="false" clear_params="true" output="screen" respawn="true" ns="/drone4">
-		<param name="fcu_url" value="udp://127.0.0.1:14571@14585" />
+		<param name="fcu_url" value="udp://127.0.0.1:14581@14585" />
 		<param name="gcs_url" value="" />
 		<param name="target_system_id" value="4" />
 		<param name="target_component_id" value="1" />
@@ -44,4 +46,5 @@
 		<rosparam command="load" file="$(find mavros)/launch/apm_pluginlists.yaml" />
 		<rosparam command="load" file="$(find mavros)/launch/apm_config.yaml" />
 	</node>
+
 </launch>
